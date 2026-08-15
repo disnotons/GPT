@@ -153,10 +153,17 @@ jobs:
 
           cat "예수_그리스도_완전입문/site/_chapter5"/part-*.md > "$target/content/5강_재물_염려_마음의_방향_통합정제본.md"
           rm -rf "$target/_chapter5"
-          expected="0f19a8a8fc27492d22d3b06f7ef6456aa1296172"
-          got="$(git hash-object "$target/content/5강_재물_염려_마음의_방향_통합정제본.md")"
-          echo "chapter 5 blob: $got"
-          test "$got" = "$expected"
+          expected5="0f19a8a8fc27492d22d3b06f7ef6456aa1296172"
+          got5="$(git hash-object "$target/content/5강_재물_염려_마음의_방향_통합정제본.md")"
+          echo "chapter 5 blob: $got5"
+          test "$got5" = "$expected5"
+
+          cat "예수_그리스도_완전입문/site/_chapter12"/part-*.md > "$target/content/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md"
+          rm -rf "$target/_chapter12"
+          expected12="92d8337cac990a5cea3a04ca978e404a7365c983"
+          got12="$(git hash-object "$target/content/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md")"
+          echo "chapter 12 blob: $got12"
+          test "$got12" = "$expected12"
 
           test -f "$target/index.html"
           test -f "$target/style.css"
