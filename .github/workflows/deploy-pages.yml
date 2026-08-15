@@ -32,29 +32,30 @@ jobs:
           unzip -q GPT_PUBLIC_ARCHIVE_READY.zip -d _site_src
           test -f _site_src/publish_site/index.md
 
+      - name: Stage Early Buddhism web book
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="_site_src/publish_site/early-buddhism"
+          mkdir -p "$target/content"
+          cp -R "초기불교_완전입문/site/." "$target/"
+          cp 초기불교_완전입문/*.md "$target/content/"
+          rm -f "$target/content/README.md"
+          test -f "$target/index.html"
+          test -f "$target/style.css"
+          test -f "$target/app.js"
+          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "chapter docs: $count"
+          test "$count" = "13"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Build existing archive with Jekyll
+      - name: Build existing archive and web book with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./_site_src/publish_site
           destination: ./_site
-
-      - name: Add Early Buddhism web book
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p _site/early-buddhism/content
-          cp -R "초기불교_완전입문/site/." _site/early-buddhism/
-          cp 초기불교_완전입문/*.md _site/early-buddhism/content/
-          rm -f _site/early-buddhism/content/README.md
-          test -f _site/early-buddhism/index.html
-          test -f _site/early-buddhism/style.css
-          test -f _site/early-buddhism/app.js
-          count="$(find _site/early-buddhism/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
-          echo "chapter docs: $count"
-          test "$count" = "13"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
