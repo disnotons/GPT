@@ -21,7 +21,17 @@ jobs:
         run: |
           set -euo pipefail
           target='초기불교_완전입문/11강_열반_무엇이_끝나는가_통합정제본.md'
-          cat .webbook-upload/ch11/*.part > "$target"
+          : > "$target"
+          for n in 00 01 02; do
+            cat ".webbook-upload/ch11/${n}.part" >> "$target"
+            printf '\n' >> "$target"
+          done
+          cat '.webbook-upload/ch11/03.part' >> "$target"
+          for n in 04 05 06 07; do
+            cat ".webbook-upload/ch11/${n}.part" >> "$target"
+            printf '\n' >> "$target"
+          done
+          cat '.webbook-upload/ch11/08.part' >> "$target"
           actual="$(git hash-object "$target")"
           expected='4bdaa80908e7c75f1d3ced37a347707ab663e0b4'
           echo "expected=$expected"
