@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6f1e8" />
+  <meta name="description" content="초기불교 완전입문 1강부터 13강까지 읽는 웹북" />
+  <title>초기불교 완전입문</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="progress" class="progress" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button id="menuButton" class="icon-button mobile-only" aria-label="목차 열기" aria-expanded="false">☰</button>
+    <a class="brand" href="#chapter=1" aria-label="초기불교 완전입문 첫 장으로">
+      <span class="brand-kicker">EARLY BUDDHISM</span>
+      <strong>초기불교 완전입문</strong>
+    </a>
+    <div class="top-actions">
+      <button id="themeButton" class="icon-button" aria-label="화면 테마 변경" title="화면 테마 변경">◐</button>
+      <a class="github-link" href="https://github.com/disnotons/GPT/tree/main/초기불교_완전입문" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside id="sidebar" class="sidebar" aria-label="강의 목차">
+      <div class="sidebar-inner">
+        <div class="sidebar-head">
+          <span>읽기 목차</span>
+          <button id="closeMenuButton" class="icon-button mobile-only" aria-label="목차 닫기">×</button>
+        </div>
+        <nav id="chapterNav" class="chapter-nav"></nav>
+        <div class="sidebar-note">
+          <p>1강부터 13강까지 순서대로 읽도록 구성했습니다.</p>
+          <p>각 장의 본문은 GitHub에 공개된 통합정제본 Markdown을 그대로 불러옵니다.</p>
+        </div>
+      </div>
+    </aside>
+
+    <div id="scrim" class="scrim" hidden></div>
+
+    <main class="reader" id="reader">
+      <div class="reader-toolbar">
+        <span id="chapterBadge" class="chapter-badge">1강 / 13강</span>
+        <span id="readingStatus" class="reading-status" aria-live="polite">불러오는 중…</span>
+      </div>
+
+      <article id="content" class="markdown-body" tabindex="-1">
+        <div class="loading-card">본문을 불러오고 있습니다.</div>
+      </article>
+
+      <nav class="pager" aria-label="이전 및 다음 강">
+        <button id="prevButton" class="pager-button prev" type="button"></button>
+        <button id="nextButton" class="pager-button next" type="button"></button>
+      </nav>
+
+      <footer class="book-footer">
+        <p>초기불교 완전입문 · 공개 학습본</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
