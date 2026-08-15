@@ -47,7 +47,8 @@ jobs:
           cp 초기불교_완전입문/site/index.html _site/early-buddhism/index.html
           cp 초기불교_완전입문/site/style.css _site/early-buddhism/style.css
           cp 초기불교_완전입문/site/app.js _site/early-buddhism/app.js
-          find 초기불교_완전입문 -maxdepth 1 -type f -name '*통합정제본.md' -exec cp '{}' _site/early-buddhism/content/ \;
+          cp 초기불교_완전입문/*.md _site/early-buddhism/content/
+          rm -f _site/early-buddhism/content/README.md
           test -f _site/early-buddhism/index.html
           test "$(find _site/early-buddhism/content -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13
 
