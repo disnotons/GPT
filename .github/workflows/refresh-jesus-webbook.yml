@@ -1,0 +1,95 @@
+name: Refresh Jesus webbook from verified blobs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/refresh-jesus-webbook.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore exact supplied Markdown blobs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          root='예수_그리스도_완전입문'
+          mkdir -p "$root"
+
+          fetch_blob() {
+            blob="$1"
+            path="$2"
+            sha256="$3"
+            mkdir -p "$(dirname "$path")"
+            curl -fsSL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/blobs/${blob}" \
+              | jq -r '.content' | tr -d '\n' | base64 -d > "$path"
+            test "$(git hash-object "$path")" = "$blob"
+            echo "$sha256  $path" | sha256sum -c -
+          }
+
+          fetch_blob dbbad1c517015008ec65b5f23bb20b469eb7f0ae "$root/1강_하느님_나라와_회개_통합정제본.md" 1d0da8ba8b4b4e7673b954381cd1f52f84fce4fcd1f9ec681b47feeaffb299c0
+          fetch_blob f96eaac94ffe93e90ff27e3934f94ae9a8a3a8cf "$root/2강_팔복_예수님이_말하는_복된_사람.md" 35aec9de924606896a8009d24da61221e265e8d81358cb4903c204de573727be
+          fetch_blob 4b53016c2a94d82df562b11257c09d8aad3073b8 "$root/3강_보복을_넘어서는_사랑_통합정제본.md" 05d8783e1ac43c168625e2ac6bb091db662a2c152a9c5032070354479a9d5954
+          fetch_blob 11c0f05d542bc8f855e7ac2550fd4c48dd02c4db "$root/4강_기도와_아버지_통합정제본.md" 474801442252c126d7c43d92db8830bd7ede08a4a3c1b2903f01598c5e6d8ee9
+          fetch_blob 0ac03f19cd26625533403746e68949def18bcc27 "$root/5강_재물_염려_마음의_방향_통합정제본.md" 5a0116a8aeab2aa153a885153bef23ea012dd51ca56d8c7d83eebb2f53f17ddc
+          fetch_blob ccf140f1c1d92daaaecc86eede49e7d4c3b04ac4 "$root/6강_판단_자기성찰_황금률.md" 8a8ec042e0f24cf913898a05ced1ebd2529ddfb1eda10675f457dd3f02d82a6e
+          fetch_blob c98be55c85d50386c565f5af6a6141fb5ce326b9 "$root/7강_온유함과_쉼.md" 5d4f8a040d1802ae77c657fd7e7900ee4a154be2a404427e4073b85ecf319e1d
+          fetch_blob 42bcc28e90bd37b6140f3d685072d809dbdf397d "$root/8강_용서는_어디까지인가_통합정제본.md" 7e360de8ed05dd6dcc6a7900233a339a5086100f8ba61eeee05c6cc9186a51fe
+          fetch_blob 605bb261ae2b1c1db53196b5efebe9d5b07191aa "$root/9강_가장_큰_계명과_이웃.md" ba8c99e0d8f5f5dffef7387f09d9c15a7f9f949f7e0abc391e26549c972655df
+          fetch_blob 433710d53eef7aaaadec56c45a31a485a06d235e "$root/10강_밖이_아니라_마음에서_시작되는_것.md" 6087d11021d23377e2a507efedcb36733d5c0a7b07e87183df31d5fdb62e0a80
+          fetch_blob cbe8e533f8bab6dc2b7f3a877b4046f203aa8983 "$root/11강_제자가_된다는_것_통합정제본.md" fffb0906d4fe33fe50c08e11db7d574a9f19e7e6c5820255c504f133e5292404
+          fetch_blob 8e4225e280eb52a4d64a3037455821bff1e61571 "$root/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md" a1d1eca5a12b86a510dc3b1b3a77d23d7588d61cf57593789c75ae7411295d15
+
+          # The existing Pages workflow reconstructs chapters 5 and 12 from these folders.
+          # Keep that mechanism, but make each reconstruction a byte-identical single-part copy.
+          rm -rf "$root/site/_chapter5" "$root/site/_chapter12"
+          mkdir -p "$root/site/_chapter5" "$root/site/_chapter12"
+          cp "$root/5강_재물_염려_마음의_방향_통합정제본.md" "$root/site/_chapter5/part-001.md"
+          cp "$root/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md" "$root/site/_chapter12/part-001.md"
+
+          # Render the Markdown exactly as supplied; do not rewrite book text at runtime.
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('예수_그리스도_완전입문/site/app.js')
+          s = p.read_text(encoding='utf-8')
+          old = 'marked.parse(naturalizeMarkdown(md))'
+          if old not in s and 'marked.parse(md)' not in s:
+              raise SystemExit('Expected Markdown render call not found')
+          s = s.replace(old, 'marked.parse(md)')
+          s = s.replace('예상 읽기 ${estimateMinutes(md)}분 · 자연스러운 해설체', '예상 읽기 ${estimateMinutes(md)}분 · 원문 그대로')
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          # Verify the copies used by the webbook reconstruction are still exact.
+          test "$(git hash-object "$root/site/_chapter5/part-001.md")" = 0ac03f19cd26625533403746e68949def18bcc27
+          test "$(git hash-object "$root/site/_chapter12/part-001.md")" = 8e4225e280eb52a4d64a3037455821bff1e61571
+
+      - name: Commit exact source update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '예수_그리스도_완전입문'
+          if git diff --cached --quiet; then
+            echo 'Nothing to commit.'
+            exit 0
+          fi
+          git commit -m 'Refresh Jesus webbook from verified source archive'
+          git push origin HEAD:main
