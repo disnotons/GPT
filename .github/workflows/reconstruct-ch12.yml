@@ -1,0 +1,41 @@
+name: Reconstruct exact chapter 12
+
+on:
+  push:
+    paths:
+      - '.webbook-upload/ch12/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify exact bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='초기불교_완전입문/12강_본_것에서_단지_봄_집착_없는_인식_통합정제본.md'
+          : > "$target"
+          cat '.webbook-upload/ch12/00.part' >> "$target"
+          for n in 01 02 03; do
+            cat ".webbook-upload/ch12/${n}.part" >> "$target"
+            printf '\n' >> "$target"
+          done
+          cat '.webbook-upload/ch12/04.part' >> "$target"
+          actual="$(git hash-object "$target")"
+          expected='7221807977e79f9bf02a5677c389159c7c5656d2'
+          echo "expected=$expected"
+          echo "actual=$actual"
+          test "$actual" = "$expected"
+          rm -rf .webbook-upload/ch12
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Update Early Buddhism chapter 12 from supplied canonical file'
+          git push
