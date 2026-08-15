@@ -1,10 +1,11 @@
-name: Deploy ChatGPT Archive to Pages
+name: Deploy Archive and Reading Sites to Pages
 
 on:
   push:
     branches: [main]
     paths:
       - 'GPT_PUBLIC_ARCHIVE_READY.zip'
+      - '초기불교_완전입문/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -34,11 +35,21 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Build with Jekyll
+      - name: Build existing archive with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./_site_src/publish_site
           destination: ./_site
+
+      - name: Add Early Buddhism web book
+        run: |
+          mkdir -p _site/early-buddhism/content
+          cp 초기불교_완전입문/site/index.html _site/early-buddhism/index.html
+          cp 초기불교_완전입문/site/style.css _site/early-buddhism/style.css
+          cp 초기불교_완전입문/site/app.js _site/early-buddhism/app.js
+          find 초기불교_완전입문 -maxdepth 1 -type f -name '*통합정제본.md' -exec cp '{}' _site/early-buddhism/content/ \;
+          test -f _site/early-buddhism/index.html
+          test "$(find _site/early-buddhism/content -maxdepth 1 -type f -name '*.md' | wc -l)" -eq 13
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
