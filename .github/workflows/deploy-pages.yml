@@ -6,6 +6,7 @@ on:
     paths:
       - 'GPT_PUBLIC_ARCHIVE_READY.zip'
       - '초기불교_완전입문/**'
+      - '예수_그리스도_완전입문/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -61,9 +62,6 @@ jobs:
                   data[block*1000:(block+1)*1000] = patch
               path.write_bytes(data)
 
-          # part-05 lost four Base64 characters early in the upload. Its remote
-          # suffix from offset 996 onward is otherwise exact, so restore the
-          # canonical first block and splice the verified suffix back in.
           p5 = root / 'part-05.b64'
           remote5 = p5.read_bytes()
           head5 = (fix / 'part-05-b00.txt').read_bytes()
@@ -71,8 +69,6 @@ jobs:
               raise SystemExit(f'unexpected part-05 sizes: remote={len(remote5)}, head={len(head5)}')
           p5.write_bytes(head5 + remote5[996:])
 
-          # part-06 was heavily mixed during the original upload; reconstruct it
-          # entirely from ten independently uploaded, small verified blocks.
           p6_blocks = []
           for block in range(10):
               patch = (fix / f'part-06-b{block:02d}.txt').read_bytes()
@@ -144,10 +140,34 @@ jobs:
           echo "chapter docs: $count"
           test "$count" = "13"
 
+      - name: Stage Jesus teachings web book
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="_site_src/publish_site/jesus"
+          mkdir -p "$target/content"
+          cp -R "예수_그리스도_완전입문/site/." "$target/"
+          cp 예수_그리스도_완전입문/*.md "$target/content/"
+          rm -f "$target/content/README.md"
+
+          cat "예수_그리스도_완전입문/site/_chapter5"/part-*.md > "$target/content/5강_재물_염려_마음의_방향_통합정제본.md"
+          rm -rf "$target/_chapter5"
+          expected="0f19a8a8fc27492d22d3b06f7ef6456aa1296172"
+          got="$(git hash-object "$target/content/5강_재물_염려_마음의_방향_통합정제본.md")"
+          echo "chapter 5 blob: $got"
+          test "$got" = "$expected"
+
+          test -f "$target/index.html"
+          test -f "$target/style.css"
+          test -f "$target/app.js"
+          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "Jesus chapter docs: $count"
+          test "$count" = "12"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Build existing archive and web book with Jekyll
+      - name: Build existing archive and web books with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./_site_src/publish_site
