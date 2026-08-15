@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f0e8" />
+  <meta name="description" content="C. G. Jung CW 11 심리학과 종교 통합 해설 웹북" />
+  <title>C. G. Jung CW 11 · 심리학과 종교</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="progress" class="progress" aria-hidden="true"></div>
+  <header class="topbar">
+    <button id="menuButton" class="icon-button mobile-only" aria-label="목차 열기" aria-expanded="false">☰</button>
+    <a class="brand" href="#chapter=1" aria-label="첫 장으로">
+      <span class="brand-kicker">C. G. JUNG · CW 11</span>
+      <strong>심리학과 종교</strong>
+    </a>
+    <div class="top-actions">
+      <button id="themeButton" class="icon-button" aria-label="화면 테마 변경" title="화면 테마 변경">◐</button>
+      <a class="github-link" href="https://github.com/disnotons/GPT/tree/main/융_CW11_심리학과_종교" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside id="sidebar" class="sidebar" aria-label="웹북 목차">
+      <div class="sidebar-inner">
+        <div class="sidebar-head">
+          <span>읽기 목차</span>
+          <button id="closeMenuButton" class="icon-button mobile-only" aria-label="목차 닫기">×</button>
+        </div>
+        <nav id="chapterNav" class="chapter-nav"></nav>
+        <div class="sidebar-note">
+          <p>CW 11 해설 1부부터 9부까지 순서대로 읽도록 구성했습니다.</p>
+          <p>본문 Markdown의 내용은 수정하지 않고 그대로 불러옵니다.</p>
+        </div>
+      </div>
+    </aside>
+
+    <div id="scrim" class="scrim" hidden></div>
+
+    <main class="reader" id="reader">
+      <div class="reader-toolbar">
+        <span id="chapterBadge" class="chapter-badge">1부 / 9부</span>
+        <span id="readingStatus" class="reading-status" aria-live="polite">불러오는 중…</span>
+      </div>
+
+      <article id="content" class="markdown-body" tabindex="-1">
+        <div class="loading-card">본문을 불러오고 있습니다.</div>
+      </article>
+
+      <nav class="pager" aria-label="이전 및 다음 장">
+        <button id="prevButton" class="pager-button prev" type="button"></button>
+        <button id="nextButton" class="pager-button next" type="button"></button>
+      </nav>
+
+      <footer class="book-footer">
+        <p>C. G. Jung · Collected Works 11 · 공개 학습 웹북</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
