@@ -42,35 +42,19 @@ jobs:
           destination: ./_site
 
       - name: Add Early Buddhism web book
+        shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import shutil
-
-          root = Path('초기불교_완전입문')
-          dest = Path('_site/early-buddhism')
-          content = dest / 'content'
-          content.mkdir(parents=True, exist_ok=True)
-
-          for asset in ('index.html', 'style.css', 'app.js'):
-              src = root / 'site' / asset
-              if not src.is_file():
-                  raise SystemExit(f'missing asset: {src}')
-              shutil.copy2(src, dest / asset)
-
-          docs = sorted(
-              p for p in root.iterdir()
-              if p.is_file() and p.suffix == '.md' and p.name != 'README.md'
-          )
-          print('chapter docs:', len(docs))
-          for p in docs:
-              print(' -', p.name)
-          if len(docs) != 13:
-              raise SystemExit(f'expected 13 chapter docs, found {len(docs)}')
-
-          for p in docs:
-              shutil.copy2(p, content / p.name)
-          PY
+          set -euo pipefail
+          mkdir -p _site/early-buddhism/content
+          cp -R "초기불교_완전입문/site/." _site/early-buddhism/
+          cp 초기불교_완전입문/*.md _site/early-buddhism/content/
+          rm -f _site/early-buddhism/content/README.md
+          test -f _site/early-buddhism/index.html
+          test -f _site/early-buddhism/style.css
+          test -f _site/early-buddhism/app.js
+          count="$(find _site/early-buddhism/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "chapter docs: $count"
+          test "$count" = "13"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
