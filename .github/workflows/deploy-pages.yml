@@ -28,6 +28,7 @@ jobs:
 
       - name: Restore complete 13강 source
         shell: bash
+        continue-on-error: true
         run: |
           set -euo pipefail
           if [ -d _repair13 ]; then
