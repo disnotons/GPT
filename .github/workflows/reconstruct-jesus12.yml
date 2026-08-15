@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           target='예수_그리스도_완전입문/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md'
-          cat 예수_그리스도_완전입문/_upload12/part_* > "$target"
+          cat 예수_그리스도_완전입문/_upload12/part_* | base64 -d > "$target"
           rm -rf 예수_그리스도_완전입문/_upload12
           rm -f .github/workflows/reconstruct-jesus12.yml
           git config user.name 'github-actions[bot]'
