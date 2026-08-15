@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6f1e8" />
+  <meta name="description" content="예수 그리스도의 가르침 완전입문 1강부터 12강까지 읽는 웹북" />
+  <title>예수 그리스도의 가르침 완전입문</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="progress" class="progress" aria-hidden="true"></div>
+  <header class="topbar">
+    <button id="menuButton" class="icon-button mobile-only" aria-label="목차 열기" aria-expanded="false">☰</button>
+    <a class="brand" href="#chapter=1" aria-label="예수 그리스도의 가르침 완전입문 첫 장으로">
+      <span class="brand-kicker">TEACHINGS OF JESUS</span>
+      <strong>예수 그리스도의 가르침 완전입문</strong>
+    </a>
+    <div class="top-actions">
+      <button id="themeButton" class="icon-button" aria-label="화면 테마 변경" title="화면 테마 변경">◐</button>
+      <a class="github-link" href="https://github.com/disnotons/GPT/tree/main/예수_그리스도_완전입문" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside id="sidebar" class="sidebar" aria-label="강의 목차">
+      <div class="sidebar-inner">
+        <div class="sidebar-head">
+          <span>읽기 목차</span>
+          <button id="closeMenuButton" class="icon-button mobile-only" aria-label="목차 닫기">×</button>
+        </div>
+        <nav id="chapterNav" class="chapter-nav"></nav>
+        <div class="sidebar-note">
+          <p>1강부터 12강까지 순서대로 읽도록 구성했습니다.</p>
+          <p>원본 Markdown의 내용과 구조는 보존하고, 웹에서는 자연스러운 존댓말 해설체로 읽히도록 다듬습니다.</p>
+          <p>호킨스 박사님 비교 해설은 복음서 해설 뒤의 별도 비교 언어로 유지합니다.</p>
+        </div>
+      </div>
+    </aside>
+
+    <div id="scrim" class="scrim" hidden></div>
+
+    <main class="reader" id="reader">
+      <div class="reader-toolbar">
+        <span id="chapterBadge" class="chapter-badge">1강 / 12강</span>
+        <span id="readingStatus" class="reading-status" aria-live="polite">불러오는 중…</span>
+      </div>
+      <article id="content" class="markdown-body" tabindex="-1">
+        <div class="loading-card">본문을 불러오고 있습니다.</div>
+      </article>
+      <nav class="pager" aria-label="이전 및 다음 강">
+        <button id="prevButton" class="pager-button prev" type="button"></button>
+        <button id="nextButton" class="pager-button next" type="button"></button>
+      </nav>
+      <footer class="book-footer">
+        <p>예수 그리스도의 가르침 완전입문 · 공개 학습본</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
