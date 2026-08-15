@@ -76,6 +76,98 @@ function estimateMinutes(markdown) {
   return Math.max(1, Math.round(compact.length / 500));
 }
 
+// 원본 Markdown은 그대로 보존하고, 웹북에서 읽을 때만 문장을 부드러운 존댓말 해설체로 바꿉니다.
+// 경전 인용, [원문] 표기, 코드, 표, 제목은 손대지 않습니다.
+const endingRules = [
+  ['것이다.', '것입니다.'], ['때문이다.', '때문입니다.'], ['구조다.', '구조입니다.'],
+  ['과정이다.', '과정입니다.'], ['방향이다.', '방향입니다.'], ['방식이다.', '방식입니다.'],
+  ['훈련이다.', '훈련입니다.'], ['문제다.', '문제입니다.'], ['사람이다.', '사람입니다.'],
+  ['끝이다.', '끝입니다.'], ['뜻이다.', '뜻입니다.'], ['아니다.', '아닙니다.'], ['이다.', '입니다.'],
+  ['있었다.', '있었습니다.'], ['배웠다.', '배웠습니다.'], ['않는다.', '않습니다.'],
+  ['보여준다.', '보여줍니다.'], ['가르친다.', '가르칩니다.'], ['알아차린다.', '알아차립니다.'],
+  ['설명한다.', '설명합니다.'], ['관찰한다.', '관찰합니다.'], ['훈련한다.', '훈련합니다.'],
+  ['소멸한다.', '소멸합니다.'], ['제시한다.', '제시합니다.'], ['포함한다.', '포함합니다.'],
+  ['연결한다.', '연결합니다.'], ['시작한다.', '시작합니다.'], ['이해한다.', '이해합니다.'],
+  ['경험한다.', '경험합니다.'], ['답한다.', '답합니다.'], ['말한다.', '말합니다.'],
+  ['존재한다.', '존재합니다.'], ['한다.', '합니다.'], ['이어진다.', '이어집니다.'],
+  ['연결된다.', '연결됩니다.'], ['생긴다.', '생깁니다.'], ['일어난다.', '일어납니다.'],
+  ['끝난다.', '끝납니다.'], ['된다.', '됩니다.'], ['변한다.', '변합니다.'],
+  ['커진다.', '커집니다.'], ['나온다.', '나옵니다.'], ['보인다.', '보입니다.'],
+  ['본다.', '봅니다.'], ['살핀다.', '살핍니다.'], ['묻는다.', '묻습니다.'],
+  ['다룬다.', '다룹니다.'], ['가리킨다.', '가리킵니다.'], ['만든다.', '만듭니다.'],
+  ['준다.', '줍니다.'], ['둔다.', '둡니다.'], ['닦는다.', '닦습니다.'],
+  ['기른다.', '기릅니다.'], ['나아간다.', '나아갑니다.'], ['간다.', '갑니다.'],
+  ['바란다.', '바랍니다.'], ['사용한다.', '사용합니다.'], ['안다.', '압니다.'],
+  ['있다.', '있습니다.'], ['없다.', '없습니다.'], ['다르다.', '다릅니다.'],
+  ['중요하다.', '중요합니다.'], ['필요하다.', '필요합니다.'], ['가능하다.', '가능합니다.'],
+  ['안전하다.', '안전합니다.'], ['비슷하다.', '비슷합니다.'], ['가깝다.', '가깝습니다.'],
+  ['어렵다.', '어렵습니다.'], ['쉽다.', '쉽습니다.'], ['괜찮다.', '괜찮습니다.'], ['같다.', '같습니다.']
+];
+
+const removableHeadings = new Set([
+  '### 한 문장 핵심',
+  '### 핵심 해설'
+]);
+
+function protectInlineText(line) {
+  const saved = [];
+  const patterns = [
+    /`[^`]*`/g,
+    /“[^”]*”/g,
+    /‘[^’]*’/g,
+    /"[^"\n]*"/g
+  ];
+
+  let protectedLine = line;
+  for (const pattern of patterns) {
+    protectedLine = protectedLine.replace(pattern, match => {
+      const key = `\u0000${saved.length}\u0000`;
+      saved.push(match);
+      return key;
+    });
+  }
+  return { protectedLine, saved };
+}
+
+function restoreInlineText(line, saved) {
+  return line.replace(/\u0000(\d+)\u0000/g, (_, index) => saved[Number(index)]);
+}
+
+function makePolite(line) {
+  const { protectedLine, saved } = protectInlineText(line);
+  let result = protectedLine;
+  for (const [from, to] of endingRules) {
+    result = result.split(from).join(to);
+  }
+  return restoreInlineText(result, saved);
+}
+
+function naturalizeMarkdown(markdown) {
+  const lines = markdown.split('\n');
+  let inFence = false;
+
+  return lines.map(line => {
+    const trimmed = line.trim();
+
+    if (/^(```|~~~)/.test(trimmed)) {
+      inFence = !inFence;
+      return line;
+    }
+    if (inFence || !trimmed) return line;
+
+    if (removableHeadings.has(trimmed)) return '';
+    if (trimmed === '### 전체 가르침과의 연결') return '### 다른 가르침과 어떻게 연결되는가';
+
+    // 구조와 원문성이 중요한 부분은 그대로 둡니다.
+    if (/^#{1,6}\s/.test(trimmed)) return line;
+    if (/^>/.test(trimmed)) return line;
+    if (/^\|/.test(trimmed)) return line;
+    if (/\[원문\]/.test(trimmed)) return line;
+
+    return makePolite(line);
+  }).join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
 function enhanceRenderedContent() {
   content.querySelectorAll('a').forEach(a => {
     if (/^https?:\/\//i.test(a.getAttribute('href') || '')) {
@@ -111,19 +203,20 @@ async function loadChapter(n) {
     }
 
     marked.setOptions({ gfm: true, breaks: false });
-    const rendered = marked.parse(markdown);
+    const readingMarkdown = naturalizeMarkdown(markdown);
+    const rendered = marked.parse(readingMarkdown);
     content.innerHTML = DOMPurify.sanitize(rendered, { USE_PROFILES: { html: true } });
     enhanceRenderedContent();
-    statusEl.textContent = `예상 읽기 ${estimateMinutes(markdown)}분`;
+    statusEl.textContent = `예상 읽기 ${estimateMinutes(markdown)}분 · 읽기체`;
 
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
     requestAnimationFrame(updateProgress);
   } catch (error) {
     console.error(error);
     content.innerHTML = `
       <div class="error-card">
         <strong>본문을 불러오지 못했습니다.</strong><br />
-        잠시 후 새로고침하거나 GitHub 원문에서 확인해 주세요.
+        새로고침하거나 GitHub 원문에서 확인해 주세요.
       </div>`;
     statusEl.textContent = '불러오기 실패';
   }
