@@ -33,14 +33,72 @@ jobs:
             python3 - <<'PY'
           from pathlib import Path
           import hashlib
-          for name in ('part-05.b64', 'part-06.b64'):
-              data = (Path('_repair13') / name).read_bytes()
-              print(f'DETAIL {name} size={len(data)}')
-              for n in range(100, 1001, 100):
-                  print(f'  PREFIX {n:04d} {hashlib.sha256(data[:n]).hexdigest()[:16]}')
-              for n in range(100, 1001, 100):
-                  print(f'  SUFFIX {n:04d} {hashlib.sha256(data[-n:]).hexdigest()[:16]}')
+
+          root = Path('_repair13')
+          fix = root / 'fix'
+
+          def git_blob_sha(data: bytes) -> str:
+              return hashlib.sha1(f'blob {len(data)}\0'.encode() + data).hexdigest()
+
+          replacements = {
+              'part-01.b64': [3, 4],
+              'part-02.b64': [2],
+              'part-03.b64': [2, 5, 7],
+              'part-04.b64': [4, 7],
+              'part-07.b64': [9],
+          }
+
+          for name, blocks in replacements.items():
+              path = root / name
+              data = bytearray(path.read_bytes())
+              if len(data) != 10000:
+                  raise SystemExit(f'unexpected size for {name}: {len(data)}')
+              stem = Path(name).stem
+              for block in blocks:
+                  patch = (fix / f'{stem}-b{block:02d}.txt').read_bytes()
+                  if len(patch) != 1000:
+                      raise SystemExit(f'bad patch size {stem}-b{block:02d}: {len(patch)}')
+                  data[block*1000:(block+1)*1000] = patch
+              path.write_bytes(data)
+
+          # part-05 lost four Base64 characters early in the upload. Its remote
+          # suffix from offset 996 onward is otherwise exact, so restore the
+          # canonical first block and splice the verified suffix back in.
+          p5 = root / 'part-05.b64'
+          remote5 = p5.read_bytes()
+          head5 = (fix / 'part-05-b00.txt').read_bytes()
+          if len(remote5) != 9996 or len(head5) != 1000:
+              raise SystemExit(f'unexpected part-05 sizes: remote={len(remote5)}, head={len(head5)}')
+          p5.write_bytes(head5 + remote5[996:])
+
+          # part-06 was heavily mixed during the original upload; reconstruct it
+          # entirely from ten independently uploaded, small verified blocks.
+          p6_blocks = []
+          for block in range(10):
+              patch = (fix / f'part-06-b{block:02d}.txt').read_bytes()
+              if len(patch) != 1000:
+                  raise SystemExit(f'bad part-06 patch size b{block:02d}: {len(patch)}')
+              p6_blocks.append(patch)
+          (root / 'part-06.b64').write_bytes(b''.join(p6_blocks))
+
+          expected_parts = {
+              'part-01.b64': '4477b7f8e94d4a00d57c6d299d3971e85d2e3e64',
+              'part-02.b64': '70b10a22bfbab5498b5fedd93496a0f37643a857',
+              'part-03.b64': 'f53f3f1af992d64c5a0e600ddf3d3aca57cd4c59',
+              'part-04.b64': '5e2a3f8bbfaf0ff73a59b5c078134a194f60daf5',
+              'part-05.b64': 'e513deb1739342d6f1ea8bcfd02b6814cce1f1a2',
+              'part-06.b64': '228c43579bc94c8d7a065644e6a481fac979fb90',
+              'part-07.b64': '8fa9a3dfc76ed5040e009cb0097b939775929add',
+              'part-08.b64': '6068db3ac4762cac91de18b1986e32eb24200fda',
+          }
+          for name, expected in expected_parts.items():
+              data = (root / name).read_bytes()
+              got = git_blob_sha(data)
+              print(f'{name}: {got}')
+              if got != expected:
+                  raise SystemExit(f'chunk verification failed for {name}: {got} != {expected}')
           PY
+
             cat _repair13/part-*.b64 | base64 -d > /tmp/ch13.md
             expected="9a2d44e540169160a47d774d9854440e88d1a9b5"
             got="$(git hash-object /tmp/ch13.md)"
