@@ -7,6 +7,7 @@ on:
       - 'GPT_PUBLIC_ARCHIVE_READY.zip'
       - '초기불교_완전입문/**'
       - '예수_그리스도_완전입문/**'
+      - '융_CW11_심리학과_종교/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -171,6 +172,78 @@ jobs:
           count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
           echo "Jesus chapter docs: $count"
           test "$count" = "12"
+
+      - name: Stage CW11 web book
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          root = Path('융_CW11_심리학과_종교/source-archive')
+          fix = root / 'fix'
+
+          def git_blob_sha(data: bytes) -> str:
+              return hashlib.sha1(f'blob {len(data)}\0'.encode() + data).hexdigest()
+
+          def checked(data: bytes, expected: str, label: str) -> bytes:
+              got = git_blob_sha(data)
+              print(f'{label}: {len(data)} bytes, blob {got}')
+              if got != expected:
+                  raise SystemExit(f'{label} verification failed: {got} != {expected}')
+              return data
+
+          def repair_insert(path: Path, expected: str, target_len: int = 20000) -> bytes:
+              data = path.read_bytes()
+              if git_blob_sha(data) == expected:
+                  return data
+              delta = len(data) - target_len
+              if delta <= 0:
+                  raise SystemExit(f'cannot repair {path}: size {len(data)}, target {target_len}')
+              print(f'repairing {path.name}: removing one inserted block of {delta} bytes')
+              for i in range(len(data) - delta + 1):
+                  candidate = data[:i] + data[i + delta:]
+                  if git_blob_sha(candidate) == expected:
+                      print(f'repaired {path.name} at offset {i}')
+                      return candidate
+              raise SystemExit(f'no verified repair found for {path}')
+
+          parts = []
+          parts.append(checked((root/'part-00.b64').read_bytes(), 'b14bce8b3877a515ceb485c4e857fab889e301e0', 'part-00'))
+          parts.append(checked((fix/'p01-0').read_bytes() + (fix/'p01-1').read_bytes(), 'eff32db7d2430a857ae47a063df1227ba93bf67f', 'part-01'))
+          parts.append(checked(repair_insert(root/'part-02.b64', '6b1dcc438d309faaa9bdd50b237a4a1541b0d65a'), '6b1dcc438d309faaa9bdd50b237a4a1541b0d65a', 'part-02'))
+          parts.append(checked((root/'part-03.b64').read_bytes(), '734efd15cddeb96bd721176d0516e1aa3831d050', 'part-03'))
+          parts.append(checked(repair_insert(root/'part-04.b64', 'f78f9d6e1907e4f0a5232ed362764b746a748333'), 'f78f9d6e1907e4f0a5232ed362764b746a748333', 'part-04'))
+          parts.append(checked(repair_insert(root/'part-05.b64', '3b858632e73e63c7fdc57147129d0fd34e56ae98'), '3b858632e73e63c7fdc57147129d0fd34e56ae98', 'part-05'))
+          parts.append(checked(repair_insert(root/'part-06.b64', 'b61369d4e7ba3a901e649981f52f3344e93e68c0'), 'b61369d4e7ba3a901e649981f52f3344e93e68c0', 'part-06'))
+          parts.append(checked((fix/'p07-0').read_bytes() + (fix/'p07-1').read_bytes(), '51c9b6c1d40c441f6251fd01f6a910249c2f34ce', 'part-07'))
+          parts.append(checked((fix/'p08-0').read_bytes() + (fix/'p08-1').read_bytes(), 'cad41e5793a4fcd6c42ab402e2eb8791f0f104fb', 'part-08'))
+          parts.append(checked((fix/'p09-0').read_bytes(), '79a3863ea3564b991f72952fc596423a1cb887e6', 'part-09'))
+
+          payload = b''.join(parts)
+          if len(payload) != 189592:
+              raise SystemExit(f'unexpected CW11 base64 length: {len(payload)}')
+          Path('/tmp/cw11.b64').write_bytes(payload)
+          PY
+
+          base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz
+          expected_sha="153ec9d95e363a501965752cd2f285d7a4733a6065d75e21f31984911c779096"
+          got_sha="$(sha256sum /tmp/cw11_sources.tar.gz | awk '{print $1}')"
+          echo "CW11 archive sha256: $got_sha"
+          test "$got_sha" = "$expected_sha"
+
+          target="_site_src/publish_site/cw11"
+          mkdir -p "$target/content"
+          cp -R "융_CW11_심리학과_종교/site/." "$target/"
+          tar -xzf /tmp/cw11_sources.tar.gz -C "$target/content"
+
+          test -f "$target/index.html"
+          test -f "$target/style.css"
+          test -f "$target/app.js"
+          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "CW11 chapter docs: $count"
+          test "$count" = "9"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
