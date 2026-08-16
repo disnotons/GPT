@@ -26,7 +26,7 @@ jobs:
             'https://drive.usercontent.google.com/download?id=1869IwGasm3eWXgonBPn1kJYo1xWRaE5Y&export=download&confirm=t'
           curl -L --fail --retry 3 --retry-delay 2 \
             -o /tmp/traditions.zip \
-            'https://drive.usercontent.google.com/download?id=1Mrtjh7nmHazZT3ftzFiFL-aSoIKkcR1M&export=download&confirm=t'
+            'https://drive.usercontent.google.com/download?id=1r1ea63zjcoZbZTJWac6enfUIuOOrpUcM&export=download&confirm=t'
           unzip -t /tmp/steps.zip >/dev/null
           unzip -t /tmp/traditions.zip >/dev/null
       - name: Build webbook without rewriting Markdown bodies
