@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>AA 12단계 · 12전통 웹북</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+</head>
+<body>
+  <div id="progress"></div>
+  <header class="topbar">
+    <button id="menuBtn" class="icon-btn" aria-label="목차 열기">☰</button>
+    <a class="brand" href="./">AA 12단계 · 12전통</a>
+    <div class="top-actions">
+      <button id="themeBtn" class="icon-btn" aria-label="다크 모드">◐</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-head">
+        <strong>목차</strong>
+        <button id="closeBtn" class="icon-btn" aria-label="목차 닫기">×</button>
+      </div>
+      <input id="filter" class="filter" type="search" placeholder="목차 검색" autocomplete="off">
+      <nav id="toc" class="toc" aria-label="웹북 목차"></nav>
+    </aside>
+    <div id="scrim" class="scrim"></div>
+
+    <main class="main">
+      <article id="article" class="article">
+        <div class="loading">웹북을 불러오는 중입니다…</div>
+      </article>
+      <nav class="pager" aria-label="이전 다음 문서">
+        <button id="prevBtn" class="pager-btn">← 이전</button>
+        <button id="nextBtn" class="pager-btn">다음 →</button>
+      </nav>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
