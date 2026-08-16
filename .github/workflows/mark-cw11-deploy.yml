@@ -1,0 +1,37 @@
+name: Mark CW11 Pages deployment success
+
+on:
+  workflow_run:
+    workflows: ["Deploy Archive and Reading Sites to Pages"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  mark:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Record verified Pages deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker='융_CW11_심리학과_종교/DEPLOYED.txt'
+          printf '%s\n' \
+            'CW11 Pages deployment completed successfully.' \
+            'Public path: /GPT/cw11/' \
+            "Source workflow run: ${{ github.event.workflow_run.id }}" \
+            "Source commit: ${{ github.event.workflow_run.head_sha }}" > "$marker"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$marker"
+          if ! git diff --cached --quiet; then
+            git commit -m 'Record CW11 Pages deployment success [skip ci]'
+            git push origin HEAD:main
+          fi
