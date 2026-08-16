@@ -83,7 +83,7 @@ jobs:
           test -d "$src"
           count_parts="$(find "$src" -maxdepth 1 -type f -name 'part-*.b64' | wc -l | tr -d ' ')"
           echo "CW11 source-v3 parts: $count_parts"
-          test "$count_parts" = "12"
+          test "$count_parts" = "11"
           cat "$src"/part-*.b64 > /tmp/cw11.b64
           base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz
           expected_sha="153ec9d95e363a501965752cd2f285d7a4733a6065d75e21f31984911c779096"
