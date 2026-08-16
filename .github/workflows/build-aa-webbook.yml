@@ -1,0 +1,49 @@
+name: Build AA webbook
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-aa-webbook.yml'
+      - 'AA_12단계_12전통/build_from_drive.py'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download source ZIPs
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/steps.zip \
+            'https://drive.usercontent.google.com/download?id=1869IwGasm3eWXgonBPn1kJYo1xWRaE5Y&export=download&confirm=t'
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/traditions.zip \
+            'https://drive.usercontent.google.com/download?id=1Mrtjh7nmHazZT3ftzFiFL-aSoIKkcR1M&export=download&confirm=t'
+          unzip -t /tmp/steps.zip >/dev/null
+          unzip -t /tmp/traditions.zip >/dev/null
+      - name: Build webbook without rewriting Markdown bodies
+        run: |
+          rm -rf '초기불교/aa'
+          python 'AA_12단계_12전통/build_from_drive.py' /tmp/steps.zip /tmp/traditions.zip '초기불교/aa'
+          test "$(find '초기불교/aa/content' -maxdepth 1 -name '*.md' | wc -l)" -eq 25
+      - name: Commit generated webbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '초기불교/aa'
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m 'Publish AA 12 Steps and 12 Traditions webbook'
+          git push origin HEAD:main
