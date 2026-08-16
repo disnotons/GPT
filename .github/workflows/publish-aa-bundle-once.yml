@@ -1,0 +1,116 @@
+name: Publish exact AA webbook bundle once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-aa-bundle-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download byte-identical Markdown sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/steps.zip \
+            'https://drive.usercontent.google.com/download?id=1869IwGasm3eWXgonBPn1kJYo1xWRaE5Y&export=download&confirm=t'
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/traditions.zip \
+            'https://drive.usercontent.google.com/download?id=1r1ea63zjcoZbZTJWac6enfUIuOOrpUcM&export=download&confirm=t'
+          unzip -t /tmp/steps.zip >/dev/null
+          unzip -t /tmp/traditions.zip >/dev/null
+
+      - name: Assemble uploaded bundle exactly in a new path
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='초기불교/aa'
+          test ! -e "$target"
+          rm -rf /tmp/aa-site
+          mkdir -p /tmp/aa-site/content
+          base64 -d '.webbook-upload/aa-final-root.tar.xz.b64' > /tmp/aa-root.tar.xz
+          test "$(sha256sum /tmp/aa-root.tar.xz | awk '{print $1}')" = '8732c3243e1bc79a23de73c50cd6880ad9bc922c6b253e255b6c1acaad3c30c7'
+          tar -xJf /tmp/aa-root.tar.xz -C /tmp/aa-site
+
+          python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+
+          out = Path('/tmp/aa-site')
+          expected = json.loads((out / 'content-sha256.json').read_text(encoding='utf-8'))
+          sources = ['/tmp/steps.zip', '/tmp/traditions.zip']
+          by_hash = {}
+          for src in sources:
+              with zipfile.ZipFile(src) as z:
+                  for name in z.namelist():
+                      if name.endswith('/') or not name.lower().endswith('.md'):
+                          continue
+                      raw = z.read(name)
+                      h = hashlib.sha256(raw).hexdigest()
+                      by_hash.setdefault(h, []).append((name, raw))
+
+          for filename, wanted in expected.items():
+              matches = by_hash.get(wanted, [])
+              if not matches:
+                  raise SystemExit(f'Missing exact source bytes for {filename}: {wanted}')
+              raw = matches[0][1]
+              dst = out / 'content' / filename
+              dst.write_bytes(raw)
+              if hashlib.sha256(dst.read_bytes()).hexdigest() != wanted:
+                  raise SystemExit(f'Hash mismatch after write: {filename}')
+          PY
+
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('/tmp/aa-site')
+          root_hashes = {
+              'README.txt': '1afd151e662f9686370601e1492614836264af86196eccd6418a0d7231879119',
+              'content-sha256.json': 'ee6b3e36aa683e2b138789d8c4c4c27bcf4790340b991bb3de91bcb47ceee018',
+              'index.html': 'c0a3e678acac74010206ce74ac575b39670c8f6d6f34ace0208173e4a60a9ec6',
+              'app.js': '0ff483e0bdb477dab9cb4627b558b5c1aa06eb8b34168aa97fe121301591391f',
+              'style.css': '116f4bcada2cf6e3c74d2e42966d99279e754fcc7ef52d80b129b33a3f9650e1',
+          }
+          expected_content = json.loads((root / 'content-sha256.json').read_text(encoding='utf-8'))
+          actual_files = {str(p.relative_to(root)) for p in root.rglob('*') if p.is_file()}
+          expected_files = set(root_hashes) | {f'content/{name}' for name in expected_content}
+          if actual_files != expected_files:
+              raise SystemExit(f'Unexpected file set: extra={sorted(actual_files-expected_files)} missing={sorted(expected_files-actual_files)}')
+          if len(actual_files) != 30 or len(expected_content) != 25:
+              raise SystemExit(f'Unexpected counts: files={len(actual_files)} content={len(expected_content)}')
+          for name, wanted in root_hashes.items():
+              got = hashlib.sha256((root / name).read_bytes()).hexdigest()
+              if got != wanted:
+                  raise SystemExit(f'Root hash mismatch {name}: {got}')
+          for name, wanted in expected_content.items():
+              got = hashlib.sha256((root / 'content' / name).read_bytes()).hexdigest()
+              if got != wanted:
+                  raise SystemExit(f'Content hash mismatch {name}: {got}')
+          print('Verified exact uploaded bundle: 30 files, 25 Markdown files.')
+          PY
+
+          mkdir -p '초기불교'
+          mv /tmp/aa-site "$target"
+
+      - name: Commit only the new webbook path and remove transfer scaffolding
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '초기불교/aa'
+          git rm '.webbook-upload/aa-final-root.tar.xz.b64'
+          git rm '.github/workflows/publish-aa-bundle-once.yml'
+          git commit -m 'Publish AA webbook at /aa'
+          git push origin HEAD:main
