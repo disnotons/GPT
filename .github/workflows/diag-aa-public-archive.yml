@@ -1,0 +1,60 @@
+name: Diagnose AA content in existing public archive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diag-aa-public-archive.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan existing repository archive for exact Markdown hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d '.webbook-upload/aa-final-root.tar.xz.b64' > /tmp/roots.tar.xz
+          mkdir -p /tmp/roots
+          tar -xJf /tmp/roots.tar.xz -C /tmp/roots
+          python - <<'PY'
+          import hashlib, io, json, zipfile
+          from pathlib import Path
+
+          expected = json.loads(Path('/tmp/roots/content-sha256.json').read_text(encoding='utf-8'))
+          wanted = set(expected.values())
+          found = {}
+
+          def scan_zip_bytes(data, label, depth=0):
+              if depth > 4:
+                  return
+              try:
+                  with zipfile.ZipFile(io.BytesIO(data)) as z:
+                      for n in z.namelist():
+                          if n.endswith('/'):
+                              continue
+                          b = z.read(n)
+                          h = hashlib.sha256(b).hexdigest()
+                          if h in wanted:
+                              found[h] = f'{label}!{n}'
+                          if n.lower().endswith('.zip') and len(b) < 100_000_000:
+                              scan_zip_bytes(b, f'{label}!{n}', depth+1)
+              except zipfile.BadZipFile:
+                  pass
+
+          for p in [Path('GPT_PUBLIC_ARCHIVE_READY.zip'), Path('GPT_PUBLIC_ARCHIVE_READY(1).zip')]:
+              if p.exists():
+                  scan_zip_bytes(p.read_bytes(), p.name)
+          print('EXPECTED', len(wanted))
+          print('FOUND', len(found))
+          for name, h in expected.items():
+              if h in found:
+                  print('MATCH', name, found[h])
+              else:
+                  print('MISS', name, h)
+          PY
