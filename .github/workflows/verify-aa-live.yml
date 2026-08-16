@@ -1,0 +1,44 @@
+name: Verify AA webbook live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-aa-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for AA Pages route
+        shell: bash
+        run: |
+          set -euo pipefail
+          health='https://disnotons.github.io/GPT/aa/health.txt'
+          manifest='https://disnotons.github.io/GPT/aa/manifest.json'
+          for n in $(seq 1 60); do
+            body="$(curl -fsSL --max-time 15 "$health" || true)"
+            if [ "$body" = 'aa-route-ok' ]; then
+              curl -fsSL --max-time 15 "$manifest" | grep -q '"documentCount"[[:space:]]*:[[:space:]]*25'
+              echo 'AA PUBLIC ROUTE IS LIVE'
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+      - name: Record verified deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .deployment
+          printf 'AA webbook verified live\nURL: https://disnotons.github.io/GPT/aa/\nCommit: %s\n' "$GITHUB_SHA" > .deployment/aa-live.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .deployment/aa-live.txt
+          git diff --cached --quiet || git commit -m 'Verify AA webbook live'
+          git push
