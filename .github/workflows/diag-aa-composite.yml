@@ -1,0 +1,44 @@
+name: Diagnose AA composite archive
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/diag-aa-composite.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check repaired composite
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64,hashlib,io,lzma,tarfile,zipfile
+          from pathlib import Path
+          expected_md=set('''48a72518f4f3d5c9c2bff0706b8de08135612b1cb3a7cda3afc4d25028f928a6 bd35f9b4eaa6f44c57a98c0e2115778e598c14781e81edb121cce1994f1af362 7af50290bd9fe694994fbeae4eb802d6b7c39037560ab5beeedb5234f69f1391 4209c326e51d916c148235edfc24ecbb1fc687c607ed302d2cb322342466cb6b 2c23772f7cc58cf38a63bf8dfc2b675a9375d52bfbd2c5b9f1c5965a4d607700 91e2a0295edada63062d9678d4a16c1569fe6b8dfc56e418e5bd2b0637fa4d81 268d09b67f41f435c63fc73e8251995578faba06372fe22e7b16ced828222840 2384fd908204000b2f4743806adab9b08798ced7f85f02183221de48afe71c34 4e6015481d9978441dc050a713e291ba8c17e9716b94440a368912a4951af80d 34afba09a77d2ef1232b05d2d9a8174989fb2a714c02810f8177328f279ca4f9 e8b14a447765eee9bd2c500aebef5b991b6fb753374d541d95b1d65adef4a710 fd71e3a5d2d81720607b1fc4dc7ab1ce80a38f228bec62b47d8955bfc28aaaf1 c2194de9f7471407266d5cac20c8cdc28f0dbe72a47a4e1b2098b9ec93e862af ab273752807c115119eb6171831136b4826737b71385a8291b8cbebe9dc2e4b9 1e55891deb7594d5d6130e9dd4bdd80b29bf2f14d8ef806f39586c8b92a28870 a1b2c23b0e0e35b20811e3bbc3f38267770d067155136e1ccf0e3a5fa2d9586c 6047154c45a23189c0c1d545fec1659fe3d6877ce8f641bcc1709458f5633952 8a9bb141c32c74a953cdf0d907f9b74e2a85bb323b38e50a1a87c88faef4725c 98887a6383a37b1cc0d7556890879153e41117e009ec87e0d28a6ca8c9929b80 797d72aad184fb20915331d51855177d2fe0979cb0ae57e0b647b22206c99bb4 666c71ee43a777f98b56f43ef9d61fe85ff43ec35aad804875a3224fb03a1621 6614840a515f264af3ade8d5c72b18b7235954bc994e68f39a0bc0d533430207 884c6e9fb6a0ba3593f12404324a25cdad5b984fae2772525ad843694d69de35 d015f12f708f87f35478b833749165fc0404b23e14732ec5088618d0b1668673 122babb84ddd4c2e8935a06c6830625f7132d1e4ba3f7c7f215c8a137eb1b3e1'''.split())
+          roots=set('''1afd151e662f9686370601e1492614836264af86196eccd6418a0d7231879119 ee6b3e36aa683e2b138789d8c4c4c27bcf4790340b991bb3de91bcb47ceee018 c0a3e678acac74010206ce74ac575b39670c8f6d6f34ace0208173e4a60a9ec6 0ff483e0bdb477dab9cb4627b558b5c1aa06eb8b34168aa97fe121301591391f 116f4bcada2cf6e3c74d2e42966d99279e754fcc7ef52d80b129b33a3f9650e1'''.split())
+          def decode(parts):
+            out=[]
+            for p in parts:
+              s=''.join(Path(p).read_text().split())
+              out.append(base64.b64decode(s,validate=True))
+            return b''.join(out)
+          def inspect(label,parts):
+            try:
+              raw=decode(parts); payload=lzma.decompress(raw) if raw.startswith(b'\xfd7zXZ\x00') else raw
+              try:
+                with tarfile.open(fileobj=io.BytesIO(payload),mode='r:*') as tf: files=[(m.name,tf.extractfile(m).read()) for m in tf.getmembers() if m.isfile()]
+              except Exception:
+                with zipfile.ZipFile(io.BytesIO(payload)) as z: files=[(n,z.read(n)) for n in z.namelist() if not n.endswith('/')]
+              hs={hashlib.sha256(b).hexdigest():n for n,b in files}
+              print(label,'parts',len(parts),'raw',len(raw),'raw_sha',hashlib.sha256(raw).hexdigest(),'files',len(files),'bytes',sum(len(b) for _,b in files),'md',len(expected_md&set(hs)),'roots',len(roots&set(hs)))
+              print('names', [n for n,_ in files[:10]])
+            except Exception as e: print(label,'FAIL',repr(e))
+          b=Path('AA_12단계_12전통'); v7=b/'source-v7'; v8=b/'source-v8'
+          inspect('v7',sorted(map(str,v7.glob('part-*.b64'))))
+          inspect('v8',sorted(map(str,v8.glob('part-*.b64'))))
+          combo=[str(v7/f'part-{i:03d}.b64') for i in range(4)]+sorted(map(str,v8.glob('part-*.b64')))
+          inspect('combo',combo)
+          PY
