@@ -1,0 +1,136 @@
+name: Deploy Pages with CW11 v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-pages-cw11-v2.yml'
+      - '융_CW11_심리학과_종교/source-v3/**'
+      - '융_CW11_심리학과_종교/site/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare full existing site
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site_src
+          mkdir -p _site_src
+          unzip -q GPT_PUBLIC_ARCHIVE_READY.zip -d _site_src
+          test -f _site_src/publish_site/index.md
+
+      - name: Preserve Early Buddhism webbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="_site_src/publish_site/early-buddhism"
+          mkdir -p "$target/content"
+          cp -R "초기불교_완전입문/site/." "$target/"
+          cp 초기불교_완전입문/*.md "$target/content/"
+          rm -f "$target/content/README.md"
+          test "$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "13"
+
+      - name: Preserve Jesus webbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="_site_src/publish_site/jesus"
+          mkdir -p "$target/content"
+          cp -R "예수_그리스도_완전입문/site/." "$target/"
+          cp 예수_그리스도_완전입문/*.md "$target/content/"
+          rm -f "$target/content/README.md"
+          cat "예수_그리스도_완전입문/site/_chapter5"/part-*.md > "$target/content/5강_재물_염려_마음의_방향_통합정제본.md"
+          rm -rf "$target/_chapter5"
+          cat "예수_그리스도_완전입문/site/_chapter12"/part-*.md > "$target/content/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md"
+          rm -rf "$target/_chapter12"
+          test "$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "12"
+
+      - name: Build CW11 from source-v3
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="융_CW11_심리학과_종교/source-v3"
+          test -d "$src"
+          parts="$(find "$src" -maxdepth 1 -type f -name 'part-*.b64' | wc -l | tr -d ' ')"
+          echo "source-v3 parts=$parts"
+          test "$parts" = "12"
+          cat "$src"/part-*.b64 > /tmp/cw11.b64
+          base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz
+          echo '153ec9d95e363a501965752cd2f285d7a4733a6065d75e21f31984911c779096  /tmp/cw11_sources.tar.gz' | sha256sum -c -
+          target="_site_src/publish_site/cw11"
+          rm -rf "$target"
+          mkdir -p "$target/content"
+          cp -R "융_CW11_심리학과_종교/site/." "$target/"
+          tar -xzf /tmp/cw11_sources.tar.gz -C "$target/content"
+          test -f "$target/index.html"
+          test -f "$target/app.js"
+          test -f "$target/style.css"
+          test "$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "9"
+          printf 'cw11-health-ok\n' > "$target/health.txt"
+
+      - uses: actions/configure-pages@v5
+
+      - name: Build Pages artifact
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_site_src/publish_site
+          destination: ./_site
+
+      - name: Verify built CW11
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _site/cw11/index.html
+          test -f _site/cw11/health.txt
+          grep -qx 'cw11-health-ok' _site/cw11/health.txt
+          test "$(find _site/cw11/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "9"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify public CW11 URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://disnotons.github.io/GPT/cw11/health.txt'
+          for n in $(seq 1 12); do
+            body="$(curl -fsSL --max-time 15 "$url" || true)"
+            if [ "$body" = 'cw11-health-ok' ]; then
+              echo 'CW11 public URL verified.'
+              exit 0
+            fi
+            echo "attempt $n: not live yet"
+            sleep 5
+          done
+          echo 'CW11 public URL verification failed.' >&2
+          exit 1
