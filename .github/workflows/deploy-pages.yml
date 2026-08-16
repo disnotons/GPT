@@ -76,32 +76,43 @@ jobs:
           echo "Jesus chapter docs: $count"
           test "$count" = "12"
 
-      - name: Stage CW11 web book
-        continue-on-error: true
+      - name: Verify CW11 source archive
         shell: bash
         run: |
           set -euo pipefail
           src="융_CW11_심리학과_종교/source-v3"
-          test -d "$src"
-          count_parts="$(find "$src" -maxdepth 1 -type f -name 'part-*.b64' | wc -l | tr -d ' ')"
-          echo "CW11 source-v3 parts: $count_parts"
-          test "$count_parts" = "11"
-          cat "$src"/part-*.b64 > /tmp/cw11.b64
+          fix="$src/fix"
+          cat \
+            "$src/part-00.b64" \
+            "$src/part-01.b64" \
+            "$src/part-02.b64" \
+            "$src/part-03.b64" \
+            "$src/part-04.b64" \
+            "$src/part-05.b64" \
+            "$src/part-06.b64" \
+            "$fix/p07-0" "$fix/p07-1" \
+            "$fix/p08-0" "$fix/p08-1" \
+            "$src/part-09.b64" \
+            "$src/part-10.b64" \
+            "$src/part-11.b64" \
+            "$src/part-12.b64" \
+            "$src/part-13.b64" \
+            "$fix/p14-0" "$fix/p14-1" \
+            "$fix/p15-0" "$fix/p15-1" \
+            > /tmp/cw11.b64
+          b64_len="$(wc -c < /tmp/cw11.b64 | tr -d ' ')"
+          echo "CW11 base64 bytes: $b64_len"
+          test "$b64_len" = "189620"
           base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz
-          expected_sha="153ec9d95e363a501965752cd2f285d7a4733a6065d75e21f31984911c779096"
+          expected_sha="7c67b6cac8b8095ce22c61baa68f7248c97cbfa0a882ab8cb1201cf7a23add98"
           got_sha="$(sha256sum /tmp/cw11_sources.tar.gz | awk '{print $1}')"
           echo "CW11 archive sha256: $got_sha"
           test "$got_sha" = "$expected_sha"
-          target="_site_src/publish_site/cw11"
-          rm -rf "$target"
-          mkdir -p "$target/content"
-          cp -R "융_CW11_심리학과_종교/site/." "$target/"
-          tar -xzf /tmp/cw11_sources.tar.gz -C "$target/content"
-          test -f "$target/index.html"
-          test -f "$target/style.css"
-          test -f "$target/app.js"
-          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
-          echo "CW11 chapter docs: $count"
+          rm -rf /tmp/cw11-check
+          mkdir -p /tmp/cw11-check
+          tar -xzf /tmp/cw11_sources.tar.gz -C /tmp/cw11-check
+          count="$(find /tmp/cw11-check -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "CW11 source docs: $count"
           test "$count" = "9"
 
       - name: Stage Linji web book
@@ -169,16 +180,22 @@ jobs:
           source: ./_site_src/publish_site
           destination: ./_site
 
-      - name: Verify CW11 in built artifact
-        continue-on-error: true
+      - name: Ensure CW11 in final Pages artifact
         shell: bash
         run: |
           set -euo pipefail
-          test -f _site/cw11/index.html
-          test -f _site/cw11/app.js
-          test -f _site/cw11/style.css
-          count="$(find _site/cw11/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
-          echo "Built CW11 chapter docs: $count"
+          target="_site/cw11"
+          rm -rf "$target"
+          mkdir -p "$target/content"
+          cp -R "융_CW11_심리학과_종교/site/." "$target/"
+          tar -xzf /tmp/cw11_sources.tar.gz -C "$target/content"
+          printf 'cw11-health-ok\n' > "$target/health.txt"
+          test -f "$target/index.html"
+          test -f "$target/app.js"
+          test -f "$target/style.css"
+          grep -qx 'cw11-health-ok' "$target/health.txt"
+          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "Final CW11 chapter docs: $count"
           test "$count" = "9"
 
       - name: Verify Linji in built artifact
