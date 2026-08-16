@@ -1,0 +1,33 @@
+name: Repair CW11 source chunk 01
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '융_CW11_심리학과_종교/source-archive/fix/p01-1-tail'
+      - '.github/workflows/fix-cw11-p01.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild exact chunk
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='융_CW11_심리학과_종교/source-archive/fix/p01-1'
+          tail='융_CW11_심리학과_종교/source-archive/fix/p01-1-tail'
+          cat "$base" "$tail" > /tmp/p01-1
+          test "$(wc -c < /tmp/p01-1 | tr -d ' ')" = '10000'
+          test "$(git hash-object /tmp/p01-1)" = 'e5a193532219e5562773947cc8925c1555b58d49'
+          cp /tmp/p01-1 "$base"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$base"
+          git commit -m 'Repair CW11 source chunk 01 [skip ci]'
+          git push origin HEAD:main
