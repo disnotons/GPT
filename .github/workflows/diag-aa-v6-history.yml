@@ -1,0 +1,56 @@
+name: Diagnose historical AA v6 source
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/diag-aa-v6-history.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct historical archive and compare hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d '.webbook-upload/aa-final-root.tar.xz.b64' > /tmp/roots.tar.xz
+          mkdir -p /tmp/roots
+          tar -xJf /tmp/roots.tar.xz -C /tmp/roots
+          python - <<'PY'
+          import base64, hashlib, io, json, lzma, subprocess, tarfile, zipfile
+          ref='38595aaf2d2829ebbf6d3dca66585b9a222f6a86'
+          base='AA_12단계_12전통/source-v6'
+          parts=[]
+          for i in range(8):
+              p=f'{base}/part-{i:03d}.b64'
+              s=subprocess.check_output(['git','show',f'{ref}:{p}']).decode().split()
+              parts.append(''.join(s))
+          expected=json.load(open('/tmp/roots/content-sha256.json',encoding='utf-8'))
+          wanted=set(expected.values())
+          def inspect(label, raw):
+              try:
+                  payload=lzma.decompress(raw) if raw.startswith(b'\xfd7zXZ\x00') else raw
+                  files=[]
+                  try:
+                      with tarfile.open(fileobj=io.BytesIO(payload),mode='r:*') as tf:
+                          files=[(m.name,tf.extractfile(m).read()) for m in tf.getmembers() if m.isfile()]
+                  except Exception:
+                      with zipfile.ZipFile(io.BytesIO(payload)) as z:
+                          files=[(n,z.read(n)) for n in z.namelist() if not n.endswith('/')]
+                  hs={hashlib.sha256(b).hexdigest():n for n,b in files}
+                  print(label,'raw',len(raw),'files',len(files),'matches',len(wanted&set(hs)),'sha',hashlib.sha256(raw).hexdigest())
+                  for name,h in expected.items():
+                      if h in hs: print('MATCH',name,hs[h])
+              except Exception as e:
+                  print(label,'FAIL',repr(e))
+          try:
+              inspect('concat-b64',base64.b64decode(''.join(parts),validate=True))
+          except Exception as e: print('concat-decode FAIL',repr(e))
+          try:
+              inspect('decode-each',b''.join(base64.b64decode(p) for p in parts))
+          except Exception as e: print('each-decode FAIL',repr(e))
+          PY
