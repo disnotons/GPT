@@ -1,0 +1,25 @@
+name: Test AA Drive source access
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test-aa-drive.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download AA source ZIPs from Drive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 2 -o /tmp/steps.zip 'https://drive.usercontent.google.com/download?id=1869IwGasm3eWXgonBPn1kJYo1xWRaE5Y&export=download&confirm=t'
+          curl -fL --retry 2 -o /tmp/traditions.zip 'https://drive.usercontent.google.com/download?id=1r1ea63zjcoZbZTJWac6enfUIuOOrpUcM&export=download&confirm=t'
+          unzip -t /tmp/steps.zip
+          unzip -t /tmp/traditions.zip
+          echo "AA_DRIVE_SOURCE_OK"
