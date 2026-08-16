@@ -205,7 +205,7 @@ jobs:
           test -f _site/aa/app.js
           test -f _site/aa/style.css
           test -f _site/aa/health.txt
-          count="$(find _site/aa/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          count="$(find _site/aa/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
           echo "Built AA docs: $count"
           test "$count" = "25"
           grep -qx 'aa-route-ok' _site/aa/health.txt
