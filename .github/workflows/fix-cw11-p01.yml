@@ -24,7 +24,7 @@ jobs:
           tail='융_CW11_심리학과_종교/source-archive/fix/p01-1-tail'
           cat "$base" "$tail" > /tmp/p01-1
           test "$(wc -c < /tmp/p01-1 | tr -d ' ')" = '10000'
-          test "$(git hash-object /tmp/p01-1)" = 'e5a193532219e5562773947cc8925c1555b58d49'
+          test "$(git hash-object /tmp/p01-1)" = '9956212fbdc0752d3c0117d4dd3ad1fa26d878e5'
           cp /tmp/p01-1 "$base"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
