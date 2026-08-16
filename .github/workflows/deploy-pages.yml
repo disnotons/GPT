@@ -6,6 +6,7 @@ on:
     paths:
       - 'GPT_PUBLIC_ARCHIVE_READY.zip'
       - '초기불교_완전입문/**'
+      - '초기불교/aa/**'
       - '예수_그리스도_완전입문/**'
       - '융_CW11_심리학과_종교/**'
       - '임제록_통합해설/**'
@@ -138,6 +139,27 @@ jobs:
           test "$(sha256sum "$target/content/임제록_제4부_행록_4.1-4.15_최종감수본.md" | awk '{print $1}')" = "babccbb3db907090f223eb686c9512864e9779c79d908a61aef5771f454e27f9"
           test "$(sha256sum "$target/content/임제록_제5부_전체통합_5.1-5.12_최종감수본.md" | awk '{print $1}')" = "521aebc867670b51f502270b67399ee5dd738410b15daa53c8977306af2125a4"
 
+      - name: Stage AA web book
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="초기불교/aa"
+          if [ ! -f "$src/index.html" ]; then
+            echo 'AA webbook has not been generated yet; skipping this run.'
+            exit 0
+          fi
+          target="_site_src/publish_site/aa"
+          rm -rf "$target"
+          mkdir -p "$target"
+          cp -R "$src/." "$target/"
+          test -f "$target/index.html"
+          test -f "$target/style.css"
+          test -f "$target/app.js"
+          count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "AA docs: $count"
+          test "$count" = "25"
+          printf 'aa-route-ok\n' > "$target/health.txt"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
@@ -169,6 +191,22 @@ jobs:
           count="$(find _site/linji/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
           echo "Built Linji docs: $count"
           test "$count" = "5"
+
+      - name: Verify AA in built artifact when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f _site/aa/index.html ]; then
+            echo 'AA webbook not present in this run.'
+            exit 0
+          fi
+          test -f _site/aa/app.js
+          test -f _site/aa/style.css
+          test -f _site/aa/health.txt
+          count="$(find _site/aa/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "Built AA docs: $count"
+          test "$count" = "25"
+          grep -qx 'aa-route-ok' _site/aa/health.txt
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
