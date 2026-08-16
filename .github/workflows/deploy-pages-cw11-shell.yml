@@ -1,0 +1,153 @@
+name: Deploy CW11 route reliably
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-pages-cw11-shell.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare current public site
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site_src
+          mkdir -p _site_src
+          unzip -q GPT_PUBLIC_ARCHIVE_READY.zip -d _site_src
+          test -d _site_src/publish_site
+
+      - name: Preserve existing reading sites
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d "초기불교_완전입문/site" ]; then
+            t="_site_src/publish_site/early-buddhism"
+            mkdir -p "$t/content"
+            cp -R "초기불교_완전입문/site/." "$t/"
+            cp 초기불교_완전입문/*.md "$t/content/" || true
+            rm -f "$t/content/README.md"
+          fi
+          if [ -d "예수_그리스도_완전입문/site" ]; then
+            t="_site_src/publish_site/jesus"
+            mkdir -p "$t/content"
+            cp -R "예수_그리스도_완전입문/site/." "$t/"
+            cp 예수_그리스도_완전입문/*.md "$t/content/" || true
+            rm -f "$t/content/README.md"
+            if compgen -G "예수_그리스도_완전입문/site/_chapter5/part-*.md" > /dev/null; then
+              cat "예수_그리스도_완전입문/site/_chapter5"/part-*.md > "$t/content/5강_재물_염려_마음의_방향_통합정제본.md"
+              rm -rf "$t/_chapter5"
+            fi
+            if compgen -G "예수_그리스도_완전입문/site/_chapter12/part-*.md" > /dev/null; then
+              cat "예수_그리스도_완전입문/site/_chapter12"/part-*.md > "$t/content/12강_돌아옴_진리_사랑_성령_평화_통합정제본.md"
+              rm -rf "$t/_chapter12"
+            fi
+          fi
+
+      - name: Stage CW11 shell unconditionally
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="_site_src/publish_site/cw11"
+          rm -rf "$target"
+          mkdir -p "$target/content"
+          cp -R "융_CW11_심리학과_종교/site/." "$target/"
+          test -f "$target/index.html"
+          test -f "$target/app.js"
+          test -f "$target/style.css"
+          printf 'cw11-route-ok\n' > "$target/health.txt"
+
+      - name: Restore CW11 content when verified source is available
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -u
+          target="_site_src/publish_site/cw11/content"
+          direct_count="$(find "융_CW11_심리학과_종교" -maxdepth 1 -type f -name 'CW11_*.md' | wc -l | tr -d ' ')"
+          if [ "$direct_count" = "9" ]; then
+            cp "융_CW11_심리학과_종교"/CW11_*.md "$target/"
+            echo 'Restored 9 direct Markdown sources.'
+            exit 0
+          fi
+          src="융_CW11_심리학과_종교/source-v3"
+          if [ -d "$src" ]; then
+            parts="$(find "$src" -maxdepth 1 -type f -name 'part-*.b64' | wc -l | tr -d ' ')"
+            if [ "$parts" = "12" ]; then
+              cat "$src"/part-*.b64 > /tmp/cw11.b64
+              if base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz 2>/dev/null; then
+                got="$(sha256sum /tmp/cw11_sources.tar.gz | awk '{print $1}')"
+                if [ "$got" = '153ec9d95e363a501965752cd2f285d7a4733a6065d75e21f31984911c779096' ]; then
+                  tar -xzf /tmp/cw11_sources.tar.gz -C "$target"
+                  test "$(find "$target" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')" = "9"
+                  echo 'Restored verified 9-file CW11 source archive.'
+                  exit 0
+                fi
+              fi
+            fi
+          fi
+          echo 'CW11 shell will deploy; verified chapter content was not available in this run.' >&2
+          exit 1
+
+      - uses: actions/configure-pages@v5
+
+      - name: Build Pages
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_site_src/publish_site
+          destination: ./_site
+
+      - name: Assert CW11 route is in artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _site/cw11/index.html
+          test -f _site/cw11/health.txt
+          grep -qx 'cw11-route-ok' _site/cw11/health.txt
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require live CW11 route
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://disnotons.github.io/GPT/cw11/health.txt'
+          for n in $(seq 1 18); do
+            body="$(curl -fsSL --max-time 15 "$url" || true)"
+            if [ "$body" = 'cw11-route-ok' ]; then
+              echo 'PUBLIC CW11 ROUTE IS LIVE'
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
