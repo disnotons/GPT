@@ -9,6 +9,7 @@ on:
       - '초기불교/aa/**'
       - '예수_그리스도_완전입문/**'
       - '융_CW11_심리학과_종교/**'
+      - 'publications/CW11-심리학과-종교/**'
       - '임제록_통합해설/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
@@ -76,44 +77,24 @@ jobs:
           echo "Jesus chapter docs: $count"
           test "$count" = "12"
 
-      - name: Verify CW11 source archive
+      - name: Verify CW11 Terra source files
         shell: bash
         run: |
           set -euo pipefail
-          src="융_CW11_심리학과_종교/source-v3"
-          fix="$src/fix"
-          cat \
-            "$src/part-00.b64" \
-            "$src/part-01.b64" \
-            "$src/part-02.b64" \
-            "$src/part-03.b64" \
-            "$src/part-04.b64" \
-            "$src/part-05.b64" \
-            "$src/part-06.b64" \
-            "$fix/p07-0" "$fix/p07-1" \
-            "$fix/p08-0" "$fix/p08-1" \
-            "$src/part-09.b64" \
-            "$src/part-10.b64" \
-            "$src/part-11.b64" \
-            "$src/part-12.b64" \
-            "$src/part-13.b64" \
-            "$fix/p14-0" "$fix/p14-1" \
-            "$fix/p15-0" "$fix/p15-1" \
-            > /tmp/cw11.b64
-          b64_len="$(wc -c < /tmp/cw11.b64 | tr -d ' ')"
-          echo "CW11 base64 bytes: $b64_len"
-          test "$b64_len" = "189620"
-          base64 -d /tmp/cw11.b64 > /tmp/cw11_sources.tar.gz
-          expected_sha="7c67b6cac8b8095ce22c61baa68f7248c97cbfa0a882ab8cb1201cf7a23add98"
-          got_sha="$(sha256sum /tmp/cw11_sources.tar.gz | awk '{print $1}')"
-          echo "CW11 archive sha256: $got_sha"
-          test "$got_sha" = "$expected_sha"
-          rm -rf /tmp/cw11-check
-          mkdir -p /tmp/cw11-check
-          tar -xzf /tmp/cw11_sources.tar.gz -C /tmp/cw11-check
-          count="$(find /tmp/cw11-check -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
-          echo "CW11 source docs: $count"
+          src="publications/CW11-심리학과-종교"
+          test -d "$src"
+          count="$(find "$src" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          echo "CW11 Terra docs: $count"
           test "$count" = "9"
+          test "$(git hash-object "$src/CW11_1_심리학과종교_1.1-1.3_통합정제본.md")" = "913d0b629c15715c8f4eb1f442b6680e2d0cb87e"
+          test "$(git hash-object "$src/CW11_2_삼위일체_교리에_대한_심리학적_접근_통합정제본.md")" = "0dd7a7ea009d08a6f397b6f5e3cf01060f9aabf2"
+          test "$(git hash-object "$src/CW11_3_미사에서의_변환_상징_통합정제본.md")" = "922a3a6d04656467f241ad9b9be259dbbc3fdafc"
+          test "$(git hash-object "$src/CW11_4_기독교_악_종교심리학_통합정제본.md")" = "5437df6bfd9acc05f50a4e1d88e32503d7a87c61"
+          test "$(git hash-object "$src/CW11_5_심리치료와_종교_통합정제본.md")" = "673e4b9d5aae70e5f53a63d2099eb288b8a9dcf9"
+          test "$(git hash-object "$src/CW11_6_욥에게_답하다_통합정제본.md")" = "6728d3ce2cabcaabb52af320cb1448daffa84ca9"
+          test "$(git hash-object "$src/CW11_7_티베트_종교문헌_심리학적주석_통합정제본.md")" = "673ba93202539a4e689cce06aaa7f6f52d8822bf"
+          test "$(git hash-object "$src/CW11_8_요가_선_명상_인도성자_통합정제본.md")" = "f5dddcc3b8269b7580cfd8263932ad2d145d68c5"
+          test "$(git hash-object "$src/CW11_9_주역과_동시성_통합정제본.md")" = "235a9d20265a9a25f7e7eab35bf7697f6ec48b8b"
 
       - name: Stage Linji web book
         shell: bash
@@ -182,11 +163,12 @@ jobs:
         run: |
           set -euo pipefail
           sudo chown -R "$USER":"$(id -gn)" _site
+          src="publications/CW11-심리학과-종교"
           target="_site/cw11"
           rm -rf "$target"
           mkdir -p "$target/content"
           cp -R "융_CW11_심리학과_종교/site/." "$target/"
-          tar -xzf /tmp/cw11_sources.tar.gz -C "$target/content"
+          cp "$src"/*.md "$target/content/"
           printf 'cw11-health-ok\n' > "$target/health.txt"
           test -f "$target/index.html"
           test -f "$target/app.js"
@@ -195,6 +177,11 @@ jobs:
           count="$(find "$target/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
           echo "Final CW11 chapter docs: $count"
           test "$count" = "9"
+          for f in "$src"/*.md; do
+            out="$target/content/$(basename "$f")"
+            test -f "$out"
+            test "$(git hash-object "$f")" = "$(git hash-object "$out")"
+          done
 
       - name: Verify Linji in built artifact
         shell: bash
@@ -218,7 +205,7 @@ jobs:
           test -f _site/aa/app.js
           test -f _site/aa/style.css
           test -f _site/aa/health.txt
-          count="$(find _site/aa/content -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
+          count="$(find _site/aa/content" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')"
           echo "Built AA docs: $count"
           test "$count" = "25"
           grep -qx 'aa-route-ok' _site/aa/health.txt
