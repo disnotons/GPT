@@ -1,0 +1,62 @@
+name: Reconstruct CW11 Terra editions
+
+on:
+  push:
+    paths:
+      - '.webbook-upload/cw11-terra/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify exact CW11 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload_dir='.webbook-upload/cw11-terra'
+          target='publications/CW11-심리학과-종교'
+
+          cat \
+            "$payload_dir/00.part" \
+            "$payload_dir/01.part" \
+            "$payload_dir/02.part" \
+            "$payload_dir/03.part" \
+            "$payload_dir/04-05.part" \
+            "$payload_dir/06-07.part" \
+            "$payload_dir/08-09.part" \
+            "$payload_dir/10-11.part" \
+            "$payload_dir/12-13.part" \
+            "$payload_dir/14-15.part" \
+            > /tmp/cw11.b64
+
+          base64 -d /tmp/cw11.b64 > /tmp/cw11.tar.xz
+          echo 'bfce66015bf4725bc9b8d9a510f0c8fd83c504ef2d500286f62499bc7a7e9001  /tmp/cw11.tar.xz' | sha256sum -c -
+
+          mkdir -p "$target"
+          tar -xJf /tmp/cw11.tar.xz -C "$target"
+
+          test "$(git hash-object "$target/CW11_1_심리학과종교_1.1-1.3_통합정제본.md")" = '913d0b629c15715c8f4eb1f442b6680e2d0cb87e'
+          test "$(git hash-object "$target/CW11_2_삼위일체_교리에_대한_심리학적_접근_통합정제본.md")" = '0dd7a7ea009d08a6f397b6f5e3cf01060f9aabf2'
+          test "$(git hash-object "$target/CW11_3_미사에서의_변환_상징_통합정제본.md")" = '922a3a6d04656467f241ad9b9be259dbbc3fdafc'
+          test "$(git hash-object "$target/CW11_4_기독교_악_종교심리학_통합정제본.md")" = '5437df6bfd9acc05f50a4e1d88e32503d7a87c61'
+          test "$(git hash-object "$target/CW11_5_심리치료와_종교_통합정제본.md")" = '673e4b9d5aae70e5f53a63d2099eb288b8a9dcf9'
+          test "$(git hash-object "$target/CW11_6_욥에게_답하다_통합정제본.md")" = '6728d3ce2cabcaabb52af320cb1448daffa84ca9'
+          test "$(git hash-object "$target/CW11_7_티베트_종교문헌_심리학적주석_통합정제본.md")" = '673ba93202539a4e689cce06aaa7f6f52d8822bf'
+          test "$(git hash-object "$target/CW11_8_요가_선_명상_인도성자_통합정제본.md")" = 'f5dddcc3b8269b7580cfd8263932ad2d145d68c5'
+          test "$(git hash-object "$target/CW11_9_주역과_동시성_통합정제본.md")" = '235a9d20265a9a25f7e7eab35bf7697f6ec48b8b'
+
+          rm -rf "$payload_dir"
+          rm -f '.github/workflows/reconstruct-cw11-terra.yml'
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Add CW11 Terra integrated editions'
+          git push
