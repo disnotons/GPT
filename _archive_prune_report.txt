@@ -1,0 +1,9 @@
+original_conversations=1358
+kept_conversations=584
+removed_conversations=774
+칼 융=82
+프로이트=2
+올더스 헉슬리=6
+데이비드 호킨스=471
+엘리스 베일리=23
+stale_aux_removed=["publish_site/categories.md", "publish_site/index.md", "publish_site/category/", "publish_site/category/buddhism.md", "publish_site/category/jesus.md", "publish_site/category/bailey.md", "publish_site/category/hawkins.md", "publish_site/category/jung.md", "publish_site/category/technology.md", "publish_site/category/philosophy-religion.md", "publish_site/category/life.md", "publish_site/category/other.md", "publish_site/category/media.md", "publish_site/search.html", "publish_site/search-index.json"]
