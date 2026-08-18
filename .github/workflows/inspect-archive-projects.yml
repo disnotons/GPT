@@ -1,0 +1,67 @@
+name: Inspect archive project metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-archive-projects.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect archive structure and project metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import zipfile, re, collections, pathlib
+          zpath = pathlib.Path('GPT_PUBLIC_ARCHIVE_READY.zip')
+          with zipfile.ZipFile(zpath) as z:
+              names = z.namelist()
+              conv = [n for n in names if n.startswith('publish_site/conversations/') and n.endswith('.md')]
+              print('CONVERSATION_COUNT', len(conv))
+              for special in ['publish_site/categories.md','publish_site/index.md','publish_site/privacy.md']:
+                  if special in names:
+                      text = z.read(special).decode('utf-8','replace')
+                      print(f'===== {special} BEGIN =====')
+                      print(text[:60000])
+                      print(f'===== {special} END =====')
+              key_counts = collections.Counter()
+              value_counts = collections.Counter()
+              author_hits = []
+              terms = ['칼 융','융','Carl Jung','Jung','프로이트','Freud','올더스 헉슬리','헉슬리','Huxley','데이비드 호킨스','호킨스','Hawkins','엘리스 베일리','앨리스 베일리','Alice Bailey','Bailey']
+              for n in conv:
+                  text = z.read(n).decode('utf-8','replace')
+                  head = text[:6000]
+                  lines = head.splitlines()[:80]
+                  meta = []
+                  if lines and lines[0].strip() == '---':
+                      for line in lines[1:]:
+                          if line.strip() == '---': break
+                          m = re.match(r'^([A-Za-z0-9_가-힣 -]+):\s*(.*)$', line)
+                          if m:
+                              k,v=m.group(1).strip(),m.group(2).strip()
+                              key_counts[k]+=1
+                              if any(x in k.lower() for x in ['project','category','source','folder']):
+                                  value_counts[(k,v)] += 1
+                                  meta.append((k,v))
+                  hits=[t for t in terms if t.lower() in head.lower()]
+                  if hits:
+                      title=''
+                      for line in lines:
+                          if line.startswith('# '):
+                              title=line[2:].strip(); break
+                      author_hits.append((n,title,meta,hits))
+              print('===== FRONTMATTER_KEYS =====')
+              for k,c in key_counts.most_common(): print(c, k)
+              print('===== PROJECT_CATEGORY_VALUES =====')
+              for (k,v),c in value_counts.most_common(500): print(c, k, '=>', v)
+              print('===== AUTHOR_HITS_IN_HEADER =====')
+              for row in author_hits[:1000]: print(row)
+          PY
