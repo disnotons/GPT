@@ -1,0 +1,105 @@
+name: Extract Hawkins book commentary
+
+on:
+  push:
+    branches: [agent/extract-hawkins-books]
+    paths:
+      - '.github/workflows/extract-hawkins-books.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract two Hawkins book commentary sets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import zipfile, pathlib, re, shutil, hashlib
+
+          zpath = pathlib.Path('GPT_PUBLIC_ARCHIVE_READY.zip')
+          outroot = pathlib.Path('_hawkins_extract')
+          if outroot.exists():
+              shutil.rmtree(outroot)
+          outroot.mkdir()
+
+          books = {
+              '진실대거짓': ['진실 대 거짓', '진실대거짓'],
+              '현대인의의식수준': ['현대인의 의식수준', '현대인의의식수준'],
+          }
+          rows = []
+          chosen = {k: [] for k in books}
+
+          def meta(text, key):
+              m = re.search(rf'(?m)^{re.escape(key)}:\s*["\']?(.*?)["\']?\s*$', text[:7000])
+              return m.group(1).strip() if m else ''
+
+          def chapter_no(title):
+              for pat in [r'제\s*(\d+)\s*장', r'(?<!\d)(\d+)\s*장']:
+                  m = re.search(pat, title)
+                  if m:
+                      return int(m.group(1))
+              return None
+
+          with zipfile.ZipFile(zpath) as z:
+              for n in z.namelist():
+                  if not (n.startswith('publish_site/conversations/') and n.endswith('.md')):
+                      continue
+                  b = z.read(n)
+                  text = b.decode('utf-8', 'replace')
+                  title = meta(text, 'title')
+                  date = meta(text, 'date')
+                  cid = meta(text, 'conversation_id')
+                  ch = chapter_no(title)
+                  if ch is None:
+                      continue
+                  for key, needles in books.items():
+                      if any(x in title for x in needles):
+                          h = hashlib.sha256(b).hexdigest()
+                          chosen[key].append((ch, date, title, cid, n, b, h))
+                          break
+
+          for key, items in chosen.items():
+              items.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+              d = outroot / key
+              d.mkdir(parents=True, exist_ok=True)
+              counts = {}
+              combined = []
+              combined.append(f'# {key} — 1장부터 마지막 장까지 공개 아카이브 해설 대화 전체\n\n')
+              for ch, date, title, cid, n, b, h in items:
+                  counts[ch] = counts.get(ch, 0) + 1
+                  idx = counts[ch]
+                  safe = re.sub(r'[\\/:*?"<>|\n\r\t]+', '_', title).strip()
+                  safe = re.sub(r'\s+', ' ', safe)[:100]
+                  fname = f'{ch:02d}장_{idx:02d}_{safe}_{cid[:8]}.md'
+                  (d / fname).write_bytes(b)
+                  rows.append((key, ch, idx, date, title, cid, n, fname, h))
+                  combined.append(f'\n\n---\n\n<!-- source: {fname} | conversation_id: {cid} | date: {date} -->\n\n')
+                  combined.append(b.decode('utf-8', 'replace'))
+              (outroot / f'{key}_1장-마지막장_전체해설.md').write_text(''.join(combined), encoding='utf-8')
+              maxch = max((x[0] for x in items), default=0)
+              missing = [i for i in range(1, maxch+1) if i not in counts]
+              (outroot / f'{key}_coverage.txt').write_text(
+                  f'files={len(items)}\nmax_chapter={maxch}\nchapters={sorted(counts)}\nmissing={missing}\ncounts={counts}\n',
+                  encoding='utf-8')
+
+          header = 'book\tchapter\tpart\tdate\ttitle\tconversation_id\toriginal_path\textracted_file\tsha256\n'
+          body = ''.join('\t'.join(map(str, r)) + '\n' for r in rows)
+          (outroot / 'manifest.tsv').write_text(header + body, encoding='utf-8')
+          print((outroot / '진실대거짓_coverage.txt').read_text())
+          print((outroot / '현대인의의식수준_coverage.txt').read_text())
+          PY
+      - name: Commit extracted files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add _hawkins_extract
+          git commit -m 'Extract Hawkins book commentary from archive' || exit 0
+          git push
