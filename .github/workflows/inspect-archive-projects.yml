@@ -1,4 +1,4 @@
-name: Inspect archive project metadata
+name: Inspect archive conversation IDs
 
 on:
   push:
@@ -15,52 +15,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build archive metadata inventory
+      - name: Build current archive conversation inventory
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import zipfile, re, collections, pathlib, json
+          import zipfile, re, pathlib
           zpath = pathlib.Path('GPT_PUBLIC_ARCHIVE_READY.zip')
-          out = {}
+          rows = []
           with zipfile.ZipFile(zpath) as z:
-              names = z.namelist()
-              conv = [n for n in names if n.startswith('publish_site/conversations/') and n.endswith('.md')]
-              out['conversation_count'] = len(conv)
-              for special in ['publish_site/categories.md','publish_site/index.md','publish_site/privacy.md']:
-                  if special in names:
-                      out[special] = z.read(special).decode('utf-8','replace')[:120000]
-              key_counts = collections.Counter()
-              value_counts = collections.Counter()
-              author_hits = []
-              terms = ['칼 융','융','Carl Jung','Jung','프로이트','Freud','올더스 헉슬리','헉슬리','Huxley','데이비드 호킨스','호킨스','Hawkins','엘리스 베일리','앨리스 베일리','Alice Bailey','Bailey']
-              for n in conv:
+              for n in sorted(z.namelist()):
+                  if not (n.startswith('publish_site/conversations/') and n.endswith('.md')):
+                      continue
                   text = z.read(n).decode('utf-8','replace')
-                  head = text[:8000]
-                  lines = head.splitlines()[:100]
-                  meta = {}
-                  if lines and lines[0].strip() == '---':
-                      for line in lines[1:]:
-                          if line.strip() == '---': break
-                          m = re.match(r'^([A-Za-z0-9_가-힣 -]+):\s*(.*)$', line)
-                          if m:
-                              k,v=m.group(1).strip(),m.group(2).strip()
-                              key_counts[k]+=1
-                              meta[k]=v
-                              if any(x in k.lower() for x in ['project','category','source','folder','workspace']):
-                                  value_counts[(k,v)] += 1
-                  hits=[t for t in terms if t.lower() in head.lower()]
-                  if hits:
-                      title=''
-                      for line in lines:
-                          if line.startswith('# '):
-                              title=line[2:].strip(); break
-                      author_hits.append({'path':n,'title':title,'meta':meta,'hits':hits})
-              out['frontmatter_keys'] = dict(key_counts.most_common())
-              out['project_category_values'] = [ {'key':k,'value':v,'count':c} for (k,v),c in value_counts.most_common(1000) ]
-              out['author_header_hits'] = author_hits[:2000]
-          pathlib.Path('_archive_project_inventory.json').write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
-          print('wrote inventory', pathlib.Path('_archive_project_inventory.json').stat().st_size)
+                  def meta(key):
+                      m = re.search(rf'(?m)^{re.escape(key)}:\s*["\']?(.*?)["\']?\s*$', text[:5000])
+                      return m.group(1).strip() if m else ''
+                  cid = meta('conversation_id')
+                  title = meta('title').replace('\t',' ').replace('\n',' ')
+                  date = meta('date')
+                  rows.append((n,cid,title,date))
+          out = pathlib.Path('_archive_conversation_inventory.tsv')
+          out.write_text('path\tconversation_id\ttitle\tdate\n' + ''.join('\t'.join(r)+'\n' for r in rows), encoding='utf-8')
+          print('conversation_count', len(rows))
           PY
       - name: Commit inventory
         shell: bash
@@ -68,6 +45,6 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add _archive_project_inventory.json
-          git commit -m 'Inspect GPT archive project metadata' || exit 0
+          git add _archive_conversation_inventory.tsv
+          git commit -m 'Inventory current GPT archive conversations' || exit 0
           git push
