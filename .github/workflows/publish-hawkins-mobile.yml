@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  inventory:
+  inspect-sample:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,31 +19,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Inspect existing public archive for Hawkins sources
+      - name: Extract one target conversation sample
         shell: bash
         run: |
           set -euo pipefail
           rm -rf /tmp/archive
           mkdir -p /tmp/archive
           unzip -q GPT_PUBLIC_ARCHIVE_READY.zip -d /tmp/archive
-          {
-            echo '=== filenames containing likely Hawkins/Truth/Modern terms ==='
-            find /tmp/archive -type f | sed 's#^/tmp/archive/##' | grep -Ei 'hawkins|truth|falsehood|의식|진실|거짓|modern|conscious' || true
-            echo
-            echo '=== conversation/export files ==='
-            find /tmp/archive -type f | sed 's#^/tmp/archive/##' | grep -Ei 'conversation|json|project' | head -n 500 || true
-            echo
-            echo '=== text hits for target Korean titles ==='
-            grep -RIl --exclude='*.zip' --exclude='*.png' --exclude='*.jpg' --exclude='*.jpeg' -E '진실 대 거짓|현대인의 의식 지도|Truth vs.? Falsehood|Reality, Spirituality and Modern Man' /tmp/archive 2>/dev/null | sed 's#^/tmp/archive/##' | head -n 200 || true
-          } > hawkins-archive-inventory.txt
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          target='6a685538-5b18-83e8-ab41-c329b132290f'
+          hits=[]
+          for p in Path('/tmp/archive/publish_site/conversations').glob('*.md'):
+              t=p.read_text(encoding='utf-8',errors='replace')
+              m=re.search(r'(?m)^conversation_id:\s*["\']?(.*?)["\']?\s*$',t[:5000])
+              if m and m.group(1).strip()==target:
+                  hits.append((p,t))
+          if len(hits)!=1:
+              raise SystemExit(f'expected one hit, got {len(hits)}')
+          Path('hawkins-sample-conversation.md').write_text(hits[0][1],encoding='utf-8')
+          print(hits[0][0])
+          PY
 
-      - name: Commit inventory
+      - name: Commit sample
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add hawkins-archive-inventory.txt
+          git add hawkins-sample-conversation.md
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Inventory Hawkins sources in public archive'
+          git commit -m 'Extract Hawkins archive sample conversation'
           git push origin HEAD:main
