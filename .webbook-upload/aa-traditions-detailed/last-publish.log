@@ -1,14 +1,10 @@
-part-00.b64 unique_versions= 2 [('dffbf603', 18000, 0), ('6c3d3e39', 18000, 0)]
-part-01.b64 unique_versions= 3 [('d3d38793', 18000, 0), ('464c41bf', 68884, 2), ('f4782266', 18000, 0)]
-part-02.b64 unique_versions= 2 [('eef28158', 18000, 0), ('b3917da9', 18000, 0)]
-part-03.b64 unique_versions= 2 [('86d54385', 18000, 0), ('a4bb726f', 18000, 0)]
-part-04.b64 unique_versions= 2 [('2bfae17d', 18000, 0), ('7f565c87', 18001, 0)]
-part-05.b64 unique_versions= 2 [('e449ae06', 18000, 0), ('32a9f983', 18000, 0)]
-part-06.b64 unique_versions= 2 [('d64e9b53', 17999, 0), ('35f8af05', 18000, 0)]
-part-07.b64 unique_versions= 1 [('78a2c4cd', 18000, 0)]
-part-08.b64 unique_versions= 1 [('2c0b79e8', 25683, 0)]
-combination_space= 128
-concat_tried= 128
-per_part_combination_space= 0
-perpart_tried= 0
-No combination of historical transfer-part versions reproduces the current uploaded 75-MD digest.
+part-00.b64 versions [('dffbf603', 18000, 0), ('6c3d3e39', 18000, 0)]
+part-01.b64 versions [('d3d38793', 18000, 0), ('464c41bf', 68884, 2), ('f4782266', 18000, 0)]
+part-02.b64 versions [('eef28158', 18000, 0), ('b3917da9', 18000, 0)]
+part-03.b64 versions [('86d54385', 18000, 0), ('a4bb726f', 18000, 0)]
+part-04.b64 versions [('2bfae17d', 18000, 0), ('7f565c87', 18001, 0)]
+part-05.b64 versions [('e449ae06', 18000, 0), ('32a9f983', 18000, 0)]
+part-06.b64 versions [('d64e9b53', 17999, 0), ('35f8af05', 18000, 0)]
+part-07.b64 versions [('78a2c4cd', 18000, 0)]
+part-08.b64 versions [('2c0b79e8', 25683, 0)]
+No historical transfer combination contains the exact current integrated MD.
