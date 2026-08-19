@@ -19,14 +19,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Recover exact integrated source, build, and publish
+      - name: Fetch validated Drive source, build, and publish
         shell: bash
         run: |
           set -u
           log='.webbook-upload/aa-traditions-detailed/last-publish.log'
           set +e
           {
-            python .github/scripts/recover_aa_integrated_history.py &&
+            python -m pip install --quiet gdown
+            gdown '1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK' -O /tmp/aa-traditions.zip
+            unzip -t /tmp/aa-traditions.zip >/dev/null
+            rm -rf /tmp/aa-traditions-src
+            mkdir -p /tmp/aa-traditions-src
+            unzip -q /tmp/aa-traditions.zip -d /tmp/aa-traditions-src
+            src_md="$(find /tmp/aa-traditions-src -type f -name 'AA_12전통_상세분석해설_전체통합본_친절한설명조.md' -print -quit)"
+            test -n "$src_md"
+            got_sha="$(sha256sum "$src_md" | awk '{print $1}')"
+            echo "validated source sha256: $got_sha"
+            test "$got_sha" = 'b4d64ad1899b1de37548283fefbb3f4dd99844d8603844e03e0d9bee645183c7'
+            cp "$src_md" /tmp/aa-integrated.md
             python .github/scripts/build_aa_traditions_integrated_webbook.py
           } > /tmp/aa-publish.log 2>&1
           status=$?
