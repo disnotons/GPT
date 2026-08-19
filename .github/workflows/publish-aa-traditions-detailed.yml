@@ -19,15 +19,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build verified webbook
-        run: python .github/scripts/build_aa_traditions_detailed.py
-
-      - name: Commit publication
+      - name: Build, record diagnostics, and publish
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
+          log='.webbook-upload/aa-traditions-detailed/last-publish.log'
+          set +e
+          python .github/scripts/build_aa_traditions_detailed.py > /tmp/aa-publish.log 2>&1
+          status=$?
+          set -e
+          cp /tmp/aa-publish.log "$log"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add '초기불교/aa/traditions-detailed' '.github/workflows/deploy-pages.yml'
-          git commit -m 'Publish AA Twelve Traditions detailed webbook'
+          if [ "$status" -eq 0 ]; then
+            git add '초기불교/aa/traditions-detailed' '.github/workflows/deploy-pages.yml' "$log"
+            git commit -m 'Publish AA Twelve Traditions detailed webbook'
+          else
+            git add "$log"
+            git commit -m 'Record AA detailed publisher failure'
+          fi
           git push origin HEAD:main
+          cat /tmp/aa-publish.log
+          exit "$status"
