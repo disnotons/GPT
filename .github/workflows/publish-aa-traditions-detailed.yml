@@ -26,7 +26,7 @@ jobs:
           log='.webbook-upload/aa-traditions-detailed/last-publish.log'
           set +e
           {
-            python .github/scripts/prepare_aa_traditions_source.py &&
+            python .github/scripts/prepare_aa_traditions_source_v2.py &&
             python .github/scripts/build_aa_traditions_detailed.py
           } > /tmp/aa-publish.log 2>&1
           status=$?
