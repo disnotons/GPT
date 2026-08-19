@@ -14,25 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test direct Drive download and record result
+      - name: Test gdown and record result
         shell: bash
         run: |
           set +e
           log='.webbook-upload/aa-traditions-detailed/drive-download.log'
           rm -f /tmp/aa-drive.zip
           {
-            echo 'Testing drive.usercontent URL'
-            curl -L --fail --silent --show-error 'https://drive.usercontent.google.com/download?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK&export=download&confirm=t' -o /tmp/aa-drive.zip
+            python -m pip install --quiet gdown
+            echo 'Testing gdown'
+            gdown '1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK' -O /tmp/aa-drive.zip
             s=$?
-            echo "curl_status=$s"
+            echo "gdown_status=$s"
             if [ -f /tmp/aa-drive.zip ]; then
               stat -c 'size=%s' /tmp/aa-drive.zip
               sha256sum /tmp/aa-drive.zip
               file /tmp/aa-drive.zip
+              unzip -t /tmp/aa-drive.zip | tail -5
             fi
           } > "$log" 2>&1
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add "$log"
-          git commit -m 'Record AA Drive download diagnostic'
+          git commit -m 'Record AA Drive gdown diagnostic'
           git push origin HEAD:main
