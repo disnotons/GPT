@@ -1,0 +1,269 @@
+name: Publish AA Twelve Traditions detailed webbook once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-aa-traditions-detailed-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet gdown
+          gdown '1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK' -O /tmp/aa-traditions.zip
+          unzip -t /tmp/aa-traditions.zip >/dev/null
+          mkdir -p /tmp/aa-traditions-src
+          unzip -q /tmp/aa-traditions.zip -d /tmp/aa-traditions-src
+          src_md="$(find /tmp/aa-traditions-src -type f -name 'AA_12전통_상세분석해설_전체통합본_친절한설명조.md' -print -quit)"
+          test -n "$src_md"
+          grep -q 'AA Twelve Traditions 상세 분석·해설' "$src_md"
+          grep -q 'A.4' "$src_md"
+          printf '%s\n' "$src_md" > /tmp/source-md-path
+
+      - name: Build webbook in a new path only
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='초기불교/aa/traditions-detailed'
+          test ! -e "$target"
+          mkdir -p "$target"
+          src_md="$(cat /tmp/source-md-path)"
+          cp "$src_md" "$target/book.md"
+
+          cat > "$target/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="ko">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="description" content="AA Twelve Traditions 상세 분석·해설 웹북">
+            <title>AA Twelve Traditions 상세 분석·해설</title>
+            <link rel="stylesheet" href="./style.css">
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+          </head>
+          <body>
+            <header class="topbar">
+              <button id="menuBtn" class="icon-btn" aria-label="목차 열기">☰</button>
+              <div class="brand">
+                <strong>AA Twelve Traditions</strong>
+                <span>상세 분석·해설</span>
+              </div>
+              <div class="top-actions">
+                <a class="text-btn" href="./book.md">원문 MD</a>
+                <button id="themeBtn" class="icon-btn" aria-label="테마 전환">◐</button>
+              </div>
+            </header>
+
+            <div class="layout">
+              <aside id="sidebar" class="sidebar" aria-label="웹북 목차">
+                <div class="sidebar-inner">
+                  <label class="search-wrap">
+                    <span>목차 검색</span>
+                    <input id="tocSearch" type="search" placeholder="예: Tradition Seven, 익명성">
+                  </label>
+                  <nav id="toc" class="toc"></nav>
+                </div>
+              </aside>
+
+              <main class="main">
+                <article id="content" class="book-content">
+                  <p class="loading">웹북을 불러오는 중입니다…</p>
+                </article>
+              </main>
+            </div>
+
+            <button id="backTop" class="back-top" aria-label="맨 위로">↑</button>
+            <script src="./app.js"></script>
+          </body>
+          </html>
+          HTML
+
+          cat > "$target/style.css" <<'CSS'
+          :root {
+            color-scheme: light;
+            --bg: #f6f4ef;
+            --paper: #fffdfa;
+            --text: #282720;
+            --muted: #716f67;
+            --line: #dedbd2;
+            --accent: #294f45;
+            --accent-soft: #e8efec;
+            --shadow: 0 12px 35px rgba(35, 38, 34, .08);
+            --top: 64px;
+            --side: 320px;
+          }
+          html[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #151815;
+            --paper: #1d211e;
+            --text: #ecece5;
+            --muted: #b1b3aa;
+            --line: #363b37;
+            --accent: #9bc6b7;
+            --accent-soft: #26352f;
+            --shadow: none;
+          }
+          * { box-sizing: border-box; }
+          html { scroll-behavior: smooth; scroll-padding-top: calc(var(--top) + 18px); }
+          body { margin: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; line-height: 1.75; }
+          a { color: var(--accent); }
+          .topbar { position: fixed; inset: 0 0 auto 0; z-index: 30; height: var(--top); display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(12px); }
+          .brand { min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+          .brand strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .brand span { margin-top: 3px; font-size: 12px; color: var(--muted); }
+          .top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+          .icon-btn, .text-btn { border: 1px solid var(--line); background: var(--paper); color: var(--text); border-radius: 10px; min-height: 38px; padding: 8px 11px; font: inherit; cursor: pointer; text-decoration: none; }
+          .icon-btn { min-width: 40px; font-size: 18px; }
+          .layout { min-height: 100vh; padding-top: var(--top); }
+          .sidebar { position: fixed; top: var(--top); bottom: 0; left: 0; width: var(--side); border-right: 1px solid var(--line); background: var(--paper); overflow: auto; z-index: 20; }
+          .sidebar-inner { padding: 20px 18px 48px; }
+          .search-wrap span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+          .search-wrap input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; }
+          .toc { margin-top: 18px; }
+          .toc a { display: block; padding: 8px 9px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13px; line-height: 1.45; }
+          .toc a:hover, .toc a.active { background: var(--accent-soft); color: var(--accent); }
+          .toc a.level-3 { padding-left: 22px; font-size: 12.5px; color: var(--muted); }
+          .main { margin-left: var(--side); padding: 34px 42px 100px; }
+          .book-content { width: min(100%, 880px); margin: 0 auto; padding: 46px 54px 80px; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+          .book-content h1 { margin: 0 0 28px; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.18; letter-spacing: -.035em; }
+          .book-content h2 { margin: 70px 0 22px; padding-top: 10px; border-top: 1px solid var(--line); font-size: clamp(1.45rem, 3vw, 2rem); line-height: 1.35; letter-spacing: -.02em; }
+          .book-content h3 { margin: 38px 0 14px; font-size: 1.22rem; line-height: 1.45; }
+          .book-content p { margin: 1em 0; }
+          .book-content blockquote { margin: 24px 0; padding: 12px 20px; border-left: 4px solid var(--accent); background: var(--accent-soft); color: var(--text); }
+          .book-content hr { border: 0; border-top: 1px solid var(--line); margin: 42px 0; }
+          .book-content table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+          .book-content th, .book-content td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+          .book-content code { padding: .15em .35em; border-radius: 5px; background: var(--accent-soft); }
+          .loading { color: var(--muted); }
+          .back-top { position: fixed; right: 22px; bottom: 22px; z-index: 25; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--text); box-shadow: var(--shadow); cursor: pointer; opacity: 0; pointer-events: none; transition: .2s; }
+          .back-top.show { opacity: 1; pointer-events: auto; }
+          #menuBtn { display: none; }
+          @media (max-width: 900px) {
+            :root { --side: min(86vw, 340px); }
+            #menuBtn { display: inline-grid; place-items: center; }
+            .sidebar { transform: translateX(-105%); transition: transform .22s ease; box-shadow: 12px 0 32px rgba(0,0,0,.12); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 18px 12px 80px; }
+            .book-content { padding: 32px 22px 64px; border-radius: 14px; }
+            .text-btn { display: none; }
+          }
+          @media (max-width: 520px) {
+            .topbar { padding: 0 10px; }
+            .brand strong { font-size: 13px; }
+            .book-content { padding-inline: 18px; }
+          }
+          CSS
+
+          cat > "$target/app.js" <<'JS'
+          (() => {
+            const content = document.getElementById('content');
+            const toc = document.getElementById('toc');
+            const search = document.getElementById('tocSearch');
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('menuBtn');
+            const themeBtn = document.getElementById('themeBtn');
+            const backTop = document.getElementById('backTop');
+
+            const slugify = (text, i) => {
+              const base = text.toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '');
+              return base || `section-${i}`;
+            };
+
+            const currentTheme = localStorage.getItem('aa-traditions-theme');
+            if (currentTheme) document.documentElement.dataset.theme = currentTheme;
+
+            themeBtn.addEventListener('click', () => {
+              const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+              document.documentElement.dataset.theme = next;
+              localStorage.setItem('aa-traditions-theme', next);
+            });
+
+            menuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+            backTop.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+            window.addEventListener('scroll', () => backTop.classList.toggle('show', window.scrollY > 700));
+
+            fetch('./book.md', {cache: 'no-store'})
+              .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
+              .then(md => {
+                marked.setOptions({gfm: true, breaks: false});
+                content.innerHTML = marked.parse(md);
+                const heads = [...content.querySelectorAll('h2, h3')];
+                const used = new Set();
+                heads.forEach((h, i) => {
+                  let id = slugify(h.textContent, i);
+                  while (used.has(id)) id += '-x';
+                  used.add(id);
+                  h.id = id;
+                });
+
+                const links = heads.map(h => {
+                  const a = document.createElement('a');
+                  a.href = `#${h.id}`;
+                  a.textContent = h.textContent;
+                  a.dataset.search = h.textContent.toLowerCase();
+                  a.className = h.tagName === 'H3' ? 'level-3' : 'level-2';
+                  a.addEventListener('click', () => sidebar.classList.remove('open'));
+                  toc.appendChild(a);
+                  return a;
+                });
+
+                search.addEventListener('input', () => {
+                  const q = search.value.trim().toLowerCase();
+                  links.forEach(a => a.hidden = q && !a.dataset.search.includes(q));
+                });
+
+                const byId = new Map(links.map(a => [a.hash.slice(1), a]));
+                const observer = new IntersectionObserver(entries => {
+                  const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+                  if (!visible) return;
+                  links.forEach(a => a.classList.remove('active'));
+                  const a = byId.get(visible.target.id);
+                  if (a) a.classList.add('active');
+                }, {rootMargin: '-70px 0px -72% 0px', threshold: 0});
+                heads.forEach(h => observer.observe(h));
+              })
+              .catch(err => {
+                content.innerHTML = `<h1>웹북을 불러오지 못했습니다</h1><p>${err.message}</p><p><a href="./book.md">원문 MD 열기</a></p>`;
+              });
+          })();
+          JS
+
+          cat > "$target/README.txt" <<'TXT'
+          AA Twelve Traditions 상세 분석·해설 웹북
+          범위: Tradition One 1.1 ~ Tradition Twelve 12.6 + Long Form A.1 ~ A.4
+          book.md는 최종 통합 MD를 그대로 사용하며, 웹북 쉘만 추가했습니다.
+          TXT
+
+          test -s "$target/book.md"
+          test -s "$target/index.html"
+          test -s "$target/style.css"
+          test -s "$target/app.js"
+          grep -q 'Tradition Twelve' "$target/book.md"
+          grep -q 'Long Form' "$target/book.md"
+
+      - name: Commit only the new webbook path and remove transfer chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '초기불교/aa/traditions-detailed'
+          if [ -d '.webbook-upload/aa-traditions-detailed' ]; then
+            git rm -r '.webbook-upload/aa-traditions-detailed'
+          fi
+          git commit -m 'Publish AA Twelve Traditions detailed webbook'
+          git push origin HEAD:main
