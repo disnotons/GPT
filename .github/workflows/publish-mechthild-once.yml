@@ -1,0 +1,85 @@
+name: Publish Mechthild webbook once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-mechthild-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Mechthild publication package
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/mechthild.zip \
+            'https://drive.usercontent.google.com/download?id=1iu7LW92J_997wATTPjsPnaOYZA-KdeUO&export=download&confirm=t'
+          unzip -t /tmp/mechthild.zip >/dev/null
+
+      - name: Install publication data without altering source prose
+        shell: bash
+        run: |
+          set -euo pipefail
+          package='/tmp/mechthild-package'
+          target='초기불교_완전입문/site/mechthild'
+          rm -rf "$package"
+          mkdir -p "$package"
+          unzip -q /tmp/mechthild.zip -d "$package"
+
+          test -f "$target/index.html"
+          test -f "$target/app.js"
+          test -f "$target/style.css"
+          test -d "$target/content"
+
+          if find "$target/content" -type f -print -quit | grep -q .; then
+            echo 'Refusing to overwrite non-empty existing Mechthild content.'
+            exit 1
+          fi
+          test ! -e "$target/book.yaml"
+          test ! -e "$target/chapters"
+
+          cp -R "$package/site_content/." "$target/content/"
+          cp "$package/book.yaml" "$target/book.yaml"
+          cp -R "$package/chapters" "$target/chapters"
+
+          python - <<'PY'
+          from pathlib import Path
+          content = Path('초기불교_완전입문/site/mechthild/content')
+          expected = {0:1, 1:4, 2:4, 3:5, 4:5, 5:6, 6:7, 7:10}
+          parts = 0
+          for book, wanted in expected.items():
+              files = sorted((content / f'book-{book}').glob('part-*.b64'))
+              if len(files) != wanted:
+                  raise SystemExit(f'book-{book}: expected {wanted} parts, got {len(files)}')
+              parts += len(files)
+          chapters = sorted(Path('초기불교_완전입문/site/mechthild/chapters').glob('*.md'))
+          if len(chapters) != 44:
+              raise SystemExit(f'expected 44 Markdown chapters, got {len(chapters)}')
+          if parts != 42:
+              raise SystemExit(f'expected 42 compressed parts, got {parts}')
+          print('Verified: 44 publication Markdown chapters and 42 compressed reader parts.')
+          PY
+
+      - name: Commit webbook data and remove one-time publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '초기불교_완전입문/site/mechthild/content'
+          git add '초기불교_완전입문/site/mechthild/book.yaml'
+          git add '초기불교_완전입문/site/mechthild/chapters'
+          git rm '.github/workflows/publish-mechthild-once.yml'
+          git commit -m 'Publish Mechthild webbook content'
+          git push origin HEAD:main
