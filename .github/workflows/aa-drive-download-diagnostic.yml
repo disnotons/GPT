@@ -14,27 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test gdown and record result
+      - name: Inspect unauthenticated Drive interstitial
         shell: bash
         run: |
           set +e
           log='.webbook-upload/aa-traditions-detailed/drive-download.log'
-          rm -f /tmp/aa-drive.zip
-          {
-            python -m pip install --quiet gdown
-            echo 'Testing gdown'
-            gdown '1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK' -O /tmp/aa-drive.zip
-            s=$?
-            echo "gdown_status=$s"
-            if [ -f /tmp/aa-drive.zip ]; then
-              stat -c 'size=%s' /tmp/aa-drive.zip
-              sha256sum /tmp/aa-drive.zip
-              file /tmp/aa-drive.zip
-              unzip -t /tmp/aa-drive.zip | tail -5
-            fi
-          } > "$log" 2>&1
+          curl -L --silent --show-error 'https://drive.usercontent.google.com/download?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK&export=download&confirm=t' -o /tmp/aa-drive.html
+          python - <<'PY' > "$log" 2>&1
+          from pathlib import Path
+          import re, html
+          p=Path('/tmp/aa-drive.html')
+          s=p.read_text(errors='replace') if p.exists() else ''
+          print('size=',len(s))
+          for key in ['request_access','accounts.google.com','confirm=','download-form','uc-download-link','drive.usercontent.google.com','resourcekey','permission','Sign in','You need access']:
+              print(key, s.lower().count(key.lower()))
+          urls=[]
+          for m in re.findall(r'https?[^"\'<> ]+',s):
+              u=html.unescape(m.replace('\\u003d','=').replace('\\u0026','&'))
+              if 'download' in u.lower() or 'usercontent' in u.lower():
+                  urls.append(u[:1000])
+          print('candidate_urls=',len(urls))
+          for u in urls[:20]: print(u)
+          for pat in [r'confirm[=:][^&"\' ]{1,120}',r'resourcekey[=:][^&"\' ]{1,200}']:
+              hits=re.findall(pat,s,re.I)
+              print('pattern',pat,'hits',hits[:20])
+          PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add "$log"
-          git commit -m 'Record AA Drive gdown diagnostic'
+          git commit -m 'Record AA Drive interstitial diagnostic'
           git push origin HEAD:main
