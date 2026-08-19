@@ -1,13 +1,18 @@
-Testing gdown
-Failed to retrieve file url:
-
-	Cannot retrieve the public link of the file. You may need to change
-	the permission to 'Anyone with the link', or have had many accesses.
-	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
-
-You may still be able to access the file from the browser:
-
-	https://drive.google.com/uc?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK
-
-but Gdown can't. Please check connections and permissions.
-gdown_status=1
+size= 903621
+request_access 0
+accounts.google.com 3
+confirm= 0
+download-form 0
+uc-download-link 0
+drive.usercontent.google.com 8
+resourcekey 0
+permission 0
+Sign in 2
+You need access 0
+candidate_urls= 4
+https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&dsh=S891363046:1787154436354173&flowEntry=ServiceLogin&flowName=WebLiteSignIn&followup=https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&rhlk=js&rrk=47&service=wise
+https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&dsh=S891363046:1787154436354173&flowEntry=ServiceLogin&flowName=WebLiteSignIn&followup=https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&service=wise
+https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&dsh=S891363046:1787154436354173&flowEntry=ServiceLogin&flowName=WebLiteSignIn&followup=https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&service=wise
+https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&dsh=S891363046:1787154436354173&flowEntry=SignUp&flowName=GlifWebSignIn&followup=https://drive.usercontent.google.com/download?id%3D1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK%26export%3Ddownload%26confirm%3Dt&service=wise
+pattern confirm[=:][^&"\' ]{1,120} hits []
+pattern resourcekey[=:][^&"\' ]{1,200} hits []
