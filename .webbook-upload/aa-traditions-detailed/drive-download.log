@@ -1,5 +1,13 @@
-Testing drive.usercontent URL
-curl_status=0
-size=902569
-e6e8eea8309c31475c848735ca4177889dcf43d589654b122d61c151f18e5ae3  /tmp/aa-drive.zip
-/tmp/aa-drive.zip: HTML document, ASCII text, with very long lines (65536), with no line terminators
+Testing gdown
+Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK
+
+but Gdown can't. Please check connections and permissions.
+gdown_status=1
