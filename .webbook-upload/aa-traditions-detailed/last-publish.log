@@ -1,89 +1,89 @@
-snapshot 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb: chars=169684 mod4=0
-snapshot 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb: decode/decompress rejected: Invalid data stream
-snapshot dffbf60374bc1efaf0ef3eedcacecfe26cf063c0: chars=169684 mod4=0
-snapshot dffbf60374bc1efaf0ef3eedcacecfe26cf063c0: decode/decompress rejected: Invalid data stream
-snapshot 464c41bfb2679058ada9dfbd0b282419fdae79e2: chars=220568 mod4=0
-snapshot 464c41bfb2679058ada9dfbd0b282419fdae79e2: decode/decompress rejected: Excess data after padding
-snapshot eef281586654bf2353a85d0db205754418f91ae2: chars=220568 mod4=0
-snapshot eef281586654bf2353a85d0db205754418f91ae2: decode/decompress rejected: Excess data after padding
-snapshot 86d54385b82b690bd939febef0d1e8dbece080c2: chars=220568 mod4=0
-snapshot 86d54385b82b690bd939febef0d1e8dbece080c2: decode/decompress rejected: Excess data after padding
-snapshot 2bfae17d0e4dc0b0d8412704386e4d4777663531: chars=220567 mod4=3
-snapshot 2bfae17d0e4dc0b0d8412704386e4d4777663531: decode/decompress rejected: Excess data after padding
-snapshot e449ae06458f251958af21ee08126702e291ed78: chars=220567 mod4=3
-snapshot e449ae06458f251958af21ee08126702e291ed78: decode/decompress rejected: Excess data after padding
-snapshot d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef: chars=220566 mod4=2
-snapshot d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef: decode/decompress rejected: Excess data after padding
-snapshot d3d38793cb31cb97bc064b6627ab9ee91be453fd: chars=169682 mod4=2
-snapshot d3d38793cb31cb97bc064b6627ab9ee91be453fd: decode/decompress rejected: Incorrect padding
-snapshot bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7: chars=169682 mod4=2
-snapshot bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7: decode/decompress rejected: Incorrect padding
-snapshot 43c4de1930648f9b4510ecf9275717b1b6b8ec4f: chars=169682 mod4=2
-snapshot 43c4de1930648f9b4510ecf9275717b1b6b8ec4f: decode/decompress rejected: Incorrect padding
-snapshot e368f212266413f4a74a5dbea51a848fd5fda8fd: chars=169682 mod4=2
-snapshot e368f212266413f4a74a5dbea51a848fd5fda8fd: decode/decompress rejected: Incorrect padding
-snapshot HEAD: chars=169682 mod4=2
-snapshot HEAD: decode/decompress rejected: Incorrect padding
-variant 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169684 mod4=0
-variant 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169684 mod4=0
-variant dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant 464c41bfb2679058ada9dfbd0b282419fdae79e2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220568 mod4=0
-variant 464c41bfb2679058ada9dfbd0b282419fdae79e2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant eef281586654bf2353a85d0db205754418f91ae2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220568 mod4=0
-variant eef281586654bf2353a85d0db205754418f91ae2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant 86d54385b82b690bd939febef0d1e8dbece080c2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220568 mod4=0
-variant 86d54385b82b690bd939febef0d1e8dbece080c2 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant 2bfae17d0e4dc0b0d8412704386e4d4777663531 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220567 mod4=3
-variant 2bfae17d0e4dc0b0d8412704386e4d4777663531 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant e449ae06458f251958af21ee08126702e291ed78 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220567 mod4=3
-variant e449ae06458f251958af21ee08126702e291ed78 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=220566 mod4=2
-variant d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Excess data after padding
-variant d3d38793cb31cb97bc064b6627ab9ee91be453fd part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant d3d38793cb31cb97bc064b6627ab9ee91be453fd part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant HEAD part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant HEAD part-04.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant HEAD part-04.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant HEAD part-04.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant HEAD part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant HEAD part-04.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant HEAD part-04.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant HEAD part-04.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant HEAD part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant HEAD part-04-new.b64,part-05.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant HEAD part-04-new.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant HEAD part-04-new.b64,part-05.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-variant HEAD part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: chars=169682 mod4=2
-variant HEAD part-04-new.b64,part-05-new.b64,part-06.b64,part-07.b64,part-08.b64: decode/decompress rejected: Incorrect padding
-variant HEAD part-04-new.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: chars=189208 mod4=0
-variant HEAD part-04-new.b64,part-05-new.b64,part-06-new.b64,part-07.b64,part-08.b64: decode/decompress rejected: Invalid data stream
-No historical source snapshot/variant matches the current uploaded 75-MD digest.
+snapshot 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb / concatenated-base64: bzip2 rejected: Invalid data stream
+snapshot 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+snapshot dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 / concatenated-base64: bzip2 rejected: Invalid data stream
+snapshot dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+snapshot 464c41bfb2679058ada9dfbd0b282419fdae79e2 / concatenated-base64 rejected: Excess data after padding
+snapshot 464c41bfb2679058ada9dfbd0b282419fdae79e2 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+snapshot eef281586654bf2353a85d0db205754418f91ae2 / concatenated-base64 rejected: Excess data after padding
+snapshot eef281586654bf2353a85d0db205754418f91ae2 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+snapshot 86d54385b82b690bd939febef0d1e8dbece080c2 / concatenated-base64 rejected: Excess data after padding
+snapshot 86d54385b82b690bd939febef0d1e8dbece080c2 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+snapshot 2bfae17d0e4dc0b0d8412704386e4d4777663531 / concatenated-base64 rejected: Excess data after padding
+snapshot 2bfae17d0e4dc0b0d8412704386e4d4777663531 / per-part-base64 rejected: Incorrect padding
+snapshot e449ae06458f251958af21ee08126702e291ed78 / concatenated-base64 rejected: Excess data after padding
+snapshot e449ae06458f251958af21ee08126702e291ed78 / per-part-base64 rejected: Incorrect padding
+snapshot d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef / concatenated-base64 rejected: Excess data after padding
+snapshot d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef / per-part-base64 rejected: Incorrect padding
+snapshot d3d38793cb31cb97bc064b6627ab9ee91be453fd / concatenated-base64 rejected: Incorrect padding
+snapshot d3d38793cb31cb97bc064b6627ab9ee91be453fd / per-part-base64 rejected: Incorrect padding
+snapshot bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 / concatenated-base64 rejected: Incorrect padding
+snapshot bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 / per-part-base64 rejected: Incorrect padding
+snapshot 43c4de1930648f9b4510ecf9275717b1b6b8ec4f / concatenated-base64 rejected: Incorrect padding
+snapshot 43c4de1930648f9b4510ecf9275717b1b6b8ec4f / per-part-base64 rejected: Incorrect padding
+snapshot e368f212266413f4a74a5dbea51a848fd5fda8fd / concatenated-base64 rejected: Incorrect padding
+snapshot e368f212266413f4a74a5dbea51a848fd5fda8fd / per-part-base64 rejected: Incorrect padding
+snapshot HEAD / concatenated-base64 rejected: Incorrect padding
+snapshot HEAD / per-part-base64 rejected: Incorrect padding
+variant 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb part-04.b64,part-05.b64,part-06.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant 2c0b79e866b54f9a52fe963cf7e071fa3062e3fb part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+variant dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant dffbf60374bc1efaf0ef3eedcacecfe26cf063c0 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+variant 464c41bfb2679058ada9dfbd0b282419fdae79e2 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant 464c41bfb2679058ada9dfbd0b282419fdae79e2 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+variant eef281586654bf2353a85d0db205754418f91ae2 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant eef281586654bf2353a85d0db205754418f91ae2 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+variant 86d54385b82b690bd939febef0d1e8dbece080c2 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant 86d54385b82b690bd939febef0d1e8dbece080c2 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (18001) cannot be 1 more than a multiple of 4
+variant 2bfae17d0e4dc0b0d8412704386e4d4777663531 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant 2bfae17d0e4dc0b0d8412704386e4d4777663531 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e449ae06458f251958af21ee08126702e291ed78 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant e449ae06458f251958af21ee08126702e291ed78 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Excess data after padding
+variant d64e9b5311e5b6f6afa0e24d8aa238afca8d01ef part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant d3d38793cb31cb97bc064b6627ab9ee91be453fd part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant d3d38793cb31cb97bc064b6627ab9ee91be453fd part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04-new.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant bf8b9ab8fb5d1aa94a4b777350390bfcb7689bf7 part-04-new.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant 43c4de1930648f9b4510ecf9275717b1b6b8ec4f part-04-new.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04.b64,part-05-new.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant e368f212266413f4a74a5dbea51a848fd5fda8fd part-04-new.b64,part-05-new.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant HEAD part-04.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant HEAD part-04.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant HEAD part-04.b64,part-05.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant HEAD part-04.b64,part-05.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant HEAD part-04.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant HEAD part-04.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant HEAD part-04.b64,part-05-new.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant HEAD part-04.b64,part-05-new.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant HEAD part-04-new.b64,part-05.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant HEAD part-04-new.b64,part-05.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant HEAD part-04-new.b64,part-05.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant HEAD part-04-new.b64,part-05.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+variant HEAD part-04-new.b64,part-05-new.b64,part-06.b64 / concatenated-base64 rejected: Incorrect padding
+variant HEAD part-04-new.b64,part-05-new.b64,part-06.b64 / per-part-base64 rejected: Incorrect padding
+variant HEAD part-04-new.b64,part-05-new.b64,part-06-new.b64 / concatenated-base64: bzip2 rejected: Invalid data stream
+variant HEAD part-04-new.b64,part-05-new.b64,part-06-new.b64 / per-part-base64 rejected: Invalid base64-encoded string: number of data characters (37525) cannot be 1 more than a multiple of 4
+No historical AA transfer reconstructs the current 75-MD source.
