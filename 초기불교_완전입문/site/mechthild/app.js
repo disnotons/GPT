@@ -1,12 +1,12 @@
 const books = [
-  { n: 0, short: '서두', title: '0.1 작품 서두 — 사랑하는 영혼의 계시와 책의 탄생', file: 'book-0.md.gz.b64' },
-  { n: 1, short: 'Buch I', title: '사랑에 붙잡힌 영혼과 하느님의 첫 만남', file: 'book-1.md.gz.b64' },
-  { n: 2, short: 'Buch II', title: '사랑이 영혼을 변화시키는 방식', file: 'book-2.md.gz.b64' },
-  { n: 3, short: 'Buch III', title: '갈망, 고통, 사랑과 영적 전투', file: 'book-3.md.gz.b64' },
-  { n: 4, short: 'Buch IV', title: '순수한 사랑, 교회, 수도생활과 종말', file: 'book-4.md.gz.b64' },
-  { n: 5, short: 'Buch V', title: '회개, 사랑, 교회와 마지막 길', file: 'book-5.md.gz.b64' },
-  { n: 6, short: 'Buch VI', title: '공동체, 의지, 고통과 하느님의 응시', file: 'book-6.md.gz.b64' },
-  { n: 7, short: 'Buch VII', title: '수도공동체의 일상에서 마지막 계시까지', file: 'book-7.md.gz.b64' }
+  { n: 0, short: '서두', title: '0.1 작품 서두 — 사랑하는 영혼의 계시와 책의 탄생', parts: 1 },
+  { n: 1, short: 'Buch I', title: '사랑에 붙잡힌 영혼과 하느님의 첫 만남', parts: 4 },
+  { n: 2, short: 'Buch II', title: '사랑이 영혼을 변화시키는 방식', parts: 4 },
+  { n: 3, short: 'Buch III', title: '갈망, 고통, 사랑과 영적 전투', parts: 5 },
+  { n: 4, short: 'Buch IV', title: '순수한 사랑, 교회, 수도생활과 종말', parts: 5 },
+  { n: 5, short: 'Buch V', title: '회개, 사랑, 교회와 마지막 길', parts: 6 },
+  { n: 6, short: 'Buch VI', title: '공동체, 의지, 고통과 하느님의 응시', parts: 7 },
+  { n: 7, short: 'Buch VII', title: '수도공동체의 일상에서 마지막 계시까지', parts: 10 }
 ];
 
 const nav = document.getElementById('bookNav');
@@ -85,6 +85,20 @@ async function gunzipBase64(base64) {
   return await new Response(stream).text();
 }
 
+async function fetchEncodedBook(book) {
+  const requests = [];
+  for (let i = 1; i <= book.parts; i++) {
+    const part = String(i).padStart(2, '0');
+    requests.push(fetch(`./content/book-${book.n}/part-${part}.b64`, { cache: 'no-cache' }));
+  }
+  const responses = await Promise.all(requests);
+  for (const response of responses) {
+    if (!response.ok) throw new Error(`본문 파트 불러오기 실패: HTTP ${response.status}`);
+  }
+  const texts = await Promise.all(responses.map(r => r.text()));
+  return texts.join('');
+}
+
 function enhanceRenderedContent() {
   content.querySelectorAll('a').forEach(a => {
     if (/^https?:\/\//i.test(a.getAttribute('href') || '')) {
@@ -104,11 +118,8 @@ async function loadBook(index) {
   document.title = `${book.short} · ${book.title} | 『신성의 흐르는 빛』`;
   content.innerHTML = '<div class="loading-card">본문을 불러오고 있습니다.</div>';
   closeMenu();
-
   try {
-    const response = await fetch(`./content/${book.file}`, { cache: 'no-cache' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const encoded = await response.text();
+    const encoded = await fetchEncodedBook(book);
     const markdown = await gunzipBase64(encoded);
     if (!window.marked || !window.DOMPurify) throw new Error('Markdown renderer unavailable');
     marked.setOptions({ gfm: true, breaks: false });
