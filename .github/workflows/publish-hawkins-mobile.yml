@@ -1,0 +1,59 @@
+name: Publish Hawkins mobile webbooks
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-hawkins-mobile.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Hawkins mobile webbook bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --retry-delay 2 \
+            -o /tmp/hawkins_mobile_webbooks.zip \
+            'https://drive.usercontent.google.com/download?id=1LAVgDmxnMunx1adpSZ1Ntb25iopARNhl&export=download&confirm=t'
+          unzip -t /tmp/hawkins_mobile_webbooks.zip >/dev/null
+
+      - name: Add mobile webbooks to public archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f GPT_PUBLIC_ARCHIVE_READY.zip
+          rm -rf /tmp/hawkins-add
+          mkdir -p /tmp/hawkins-add/publish_site/hawkins
+          unzip -q /tmp/hawkins_mobile_webbooks.zip -d /tmp/hawkins-add/publish_site/hawkins
+          test -f /tmp/hawkins-add/publish_site/hawkins/truth-vs-falsehood-mobile/index.html
+          test -f /tmp/hawkins-add/publish_site/hawkins/modern-consciousness-map-mobile/index.html
+          cd /tmp/hawkins-add
+          zip -qur "$GITHUB_WORKSPACE/GPT_PUBLIC_ARCHIVE_READY.zip" publish_site/hawkins
+          cd "$GITHUB_WORKSPACE"
+          unzip -l GPT_PUBLIC_ARCHIVE_READY.zip | grep -q 'publish_site/hawkins/truth-vs-falsehood-mobile/index.html'
+          unzip -l GPT_PUBLIC_ARCHIVE_READY.zip | grep -q 'publish_site/hawkins/modern-consciousness-map-mobile/index.html'
+
+      - name: Commit updated public archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add GPT_PUBLIC_ARCHIVE_READY.zip
+          if git diff --cached --quiet; then
+            echo 'No archive changes.'
+            exit 0
+          fi
+          git commit -m 'Publish Hawkins mobile webbooks'
+          git push origin HEAD:main
