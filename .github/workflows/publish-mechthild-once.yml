@@ -23,9 +23,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 --retry-delay 2 \
-            -o /tmp/mechthild.zip \
-            'https://drive.usercontent.google.com/download?id=1iu7LW92J_997wATTPjsPnaOYZA-KdeUO&export=download&confirm=t'
+          python -m pip install --quiet gdown
+          python -m gdown 'https://drive.google.com/uc?id=1iu7LW92J_997wATTPjsPnaOYZA-KdeUO' -O /tmp/mechthild.zip
+          echo '8b375eb300c84a47c39ccfdb171bfd30b16654dcd31af788dc81c4fd6b7d0646  /tmp/mechthild.zip' | sha256sum -c -
           unzip -t /tmp/mechthild.zip >/dev/null
           rm -rf /tmp/mechthild-package
           mkdir -p /tmp/mechthild-package
