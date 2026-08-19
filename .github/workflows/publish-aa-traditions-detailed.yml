@@ -19,15 +19,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Recover, build, record diagnostics, and publish
+      - name: Recover exact integrated source, build, and publish
         shell: bash
         run: |
           set -u
           log='.webbook-upload/aa-traditions-detailed/last-publish.log'
           set +e
           {
-            python .github/scripts/bruteforce_aa_transfer_history.py &&
-            python .github/scripts/build_aa_traditions_detailed.py
+            python .github/scripts/recover_aa_integrated_history.py &&
+            python .github/scripts/build_aa_traditions_integrated_webbook.py
           } > /tmp/aa-publish.log 2>&1
           status=$?
           set -e
