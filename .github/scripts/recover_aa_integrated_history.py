@@ -6,7 +6,6 @@ import base64, bz2, hashlib, io, shutil, subprocess, tarfile
 
 STAGE=Path('.webbook-upload/aa-traditions-detailed')
 EXPECTED='b4d64ad1899b1de37548283fefbb3f4dd99844d8603844e03e0d9bee645183c7'
-NAMES=[f'part-{i:02d}.b64' for i in range(9)]
 OUT=Path('/tmp/aa-integrated.md')
 
 def sh(*args:str)->bytes:
@@ -21,73 +20,69 @@ def find_integrated(raw:bytes,label:str)->bool:
         with tarfile.open(fileobj=io.BytesIO(tarbytes),mode='r:') as tf: tf.extractall(root,filter='data')
     except Exception:
         return False
-    files=list(root.rglob('*.md'))
-    print(label,'md_count',len(files))
-    for p in files:
+    for p in root.rglob('*.md'):
         h=hashlib.sha256(p.read_bytes()).hexdigest()
-        print(' ',p.name,h)
         if h==EXPECTED:
             shutil.copyfile(p,OUT)
-            print('VALIDATED_INTEGRATED',label,p.name)
+            print('VALIDATED_INTEGRATED',label,p.name,h)
             return True
     return False
 
-def try_stream(paths:list[Path],label:str)->bool:
-    if not all(p.is_file() for p in paths):
-        return False
-    txt=''.join(''.join(p.read_text(encoding='ascii').split()) for p in paths)
-    if len(txt)%4 or '=' in txt[:-4]:
-        return False
-    try: raw=base64.b64decode(txt,validate=True)
-    except Exception: return False
-    return find_integrated(raw,label)
-
-# The exact integrated source was re-uploaded in ten slices after the older
-# historical recovery logic was written. Prefer those validated current slices.
-# Parts 00-03 and 05 were already correct; corrected/current slices are 04, 06-09.
-for p05 in ('part-05.b64','part-05-new.b64'):
-    exact_paths=[
-        STAGE/'part-00.b64', STAGE/'part-01.b64', STAGE/'part-02.b64', STAGE/'part-03.b64',
-        STAGE/'current-part-04.b64', STAGE/p05,
-        STAGE/'current-part-06.b64', STAGE/'current-part-07.b64',
-        STAGE/'current-part-08.b64', STAGE/'current-part-09.b64',
-    ]
-    if try_stream(exact_paths,'current exact slices with '+p05):
-        raise SystemExit(0)
-
-def versions(name:str):
+def historical_texts(name:str):
     path=f'{STAGE.as_posix()}/{name}'
     commits=sh('git','log','--all','--format=%H','--',path).decode().splitlines()
     out=[]; seen=set()
     for c in commits:
         try: txt=sh('git','show',f'{c}:{path}').decode('ascii')
         except Exception: continue
-        txt=''.join(txt.split()); h=hashlib.sha256(txt.encode()).hexdigest()
+        txt=''.join(txt.split())
+        h=hashlib.sha256(txt.encode()).hexdigest()
         if h not in seen:
             seen.add(h); out.append((c,txt))
     print(name,'versions',[(c[:8],len(t),t.count('=')) for c,t in out])
     return out
 
-allv=[versions(n) for n in NAMES]
-# Fallback: try every historical version combination as slices of one Base64 stream.
+def current_text(name:str):
+    p=STAGE/name
+    if not p.is_file(): raise SystemExit(f'missing exact source slice: {name}')
+    return ''.join(p.read_text(encoding='ascii').split())
+
+# Exact transfer was completed later with corrected slices 04 and 06-09.
+# For slices 00-03 and 05, try the small set of historical versions retained by git.
+fixed={
+    4: current_text('current-part-04.b64'),
+    6: current_text('current-part-06.b64'),
+    7: current_text('current-part-07.b64'),
+    8: current_text('current-part-08.b64'),
+    9: current_text('current-part-09.b64'),
+}
+variable_indices=[0,1,2,3,5]
+variable=[historical_texts(f'part-{i:02d}.b64') for i in variable_indices]
+if not all(variable): raise SystemExit('missing historical source slice versions')
+
+for combo in product(*variable):
+    chosen={i:item for i,item in zip(variable_indices,combo)}
+    pieces=[]; labels=[]
+    for i in range(10):
+        if i in fixed:
+            pieces.append(fixed[i]); labels.append(f'current-{i:02d}')
+        else:
+            c,t=chosen[i]; pieces.append(t); labels.append(f'{i:02d}:{c[:8]}')
+    txt=''.join(pieces)
+    if len(txt)%4 or '=' in txt[:-4]: continue
+    try: raw=base64.b64decode(txt,validate=True)
+    except Exception: continue
+    if find_integrated(raw,'ten-slice '+','.join(labels)):
+        raise SystemExit(0)
+
+# Legacy fallback: exhaustively test the original nine-slice transfer history.
+allv=[historical_texts(f'part-{i:02d}.b64') for i in range(9)]
 for combo in product(*allv):
     txt=''.join(x[1] for x in combo)
     if len(txt)%4 or '=' in txt[:-4]: continue
     try: raw=base64.b64decode(txt,validate=True)
     except Exception: continue
-    if find_integrated(raw,'concat '+','.join(x[0][:8] for x in combo)):
+    if find_integrated(raw,'legacy-concat '+','.join(x[0][:8] for x in combo)):
         raise SystemExit(0)
-# Also try each part independently encoded before binary concatenation.
-valid=[]
-for vs in allv:
-    vv=[]
-    for c,t in vs:
-        try: vv.append((c,t,base64.b64decode(t,validate=True)))
-        except Exception: pass
-    valid.append(vv)
-if all(valid):
-    for combo in product(*valid):
-        raw=b''.join(x[2] for x in combo)
-        if find_integrated(raw,'perpart '+','.join(x[0][:8] for x in combo)):
-            raise SystemExit(0)
+
 raise SystemExit('No stored transfer combination contains the exact current integrated MD.')
