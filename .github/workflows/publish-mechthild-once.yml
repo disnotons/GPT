@@ -1,10 +1,10 @@
 name: Publish verified Mechthild webbook once
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
-      - '.mechthild-publish-trigger'
+      - '.mechthild-pr-trigger'
   workflow_dispatch:
 
 permissions:
@@ -16,6 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Download publication package
@@ -91,7 +92,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add christianity/mechthild
+          git rm -f .mechthild-publish-trigger || true
           git rm .github/workflows/publish-mechthild-once.yml
-          git rm .mechthild-publish-trigger
           git commit -m 'Publish Mechthild webbook'
           git push origin HEAD:main
