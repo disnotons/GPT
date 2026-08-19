@@ -3,3 +3,4 @@ validated-repository-source
 direct-run
 diagnostics
 historical-recovery
+per-part-base64
