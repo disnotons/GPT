@@ -19,19 +19,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download Hawkins mobile webbook bundle
+      - name: Download and stage Hawkins mobile webbooks
+        id: stage
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
+          rm -f /tmp/hawkins_mobile_webbooks.zip
           curl -L --fail --retry 3 --retry-delay 2 \
             -o /tmp/hawkins_mobile_webbooks.zip \
             'https://drive.usercontent.google.com/download?id=1LAVgDmxnMunx1adpSZ1Ntb25iopARNhl&export=download&confirm=t'
           unzip -t /tmp/hawkins_mobile_webbooks.zip >/dev/null
-
-      - name: Add mobile webbooks to public archive
-        shell: bash
-        run: |
-          set -euo pipefail
           test -f GPT_PUBLIC_ARCHIVE_READY.zip
           rm -rf /tmp/hawkins-add
           mkdir -p /tmp/hawkins-add/publish_site/hawkins
@@ -44,16 +42,25 @@ jobs:
           unzip -l GPT_PUBLIC_ARCHIVE_READY.zip | grep -q 'publish_site/hawkins/truth-vs-falsehood-mobile/index.html'
           unzip -l GPT_PUBLIC_ARCHIVE_READY.zip | grep -q 'publish_site/hawkins/modern-consciousness-map-mobile/index.html'
 
-      - name: Commit updated public archive
+      - name: Record result and commit
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add GPT_PUBLIC_ARCHIVE_READY.zip
+          if [ '${{ steps.stage.outcome }}' = 'success' ]; then
+            printf 'success\n' > hawkins-publish-status.txt
+            git add GPT_PUBLIC_ARCHIVE_READY.zip hawkins-publish-status.txt
+            msg='Publish Hawkins mobile webbooks'
+          else
+            printf 'failed\n' > hawkins-publish-status.txt
+            git add hawkins-publish-status.txt
+            msg='Record Hawkins mobile publish failure'
+          fi
           if git diff --cached --quiet; then
-            echo 'No archive changes.'
+            echo 'No changes to commit.'
             exit 0
           fi
-          git commit -m 'Publish Hawkins mobile webbooks'
+          git commit -m "$msg"
           git push origin HEAD:main
