@@ -5,3 +5,4 @@ diagnostics
 historical-recovery
 per-part-base64
 exhaustive-history
+exact-integrated-source
