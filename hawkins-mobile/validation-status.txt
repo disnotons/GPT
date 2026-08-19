@@ -1405,4 +1405,4 @@ Traceback (most recent call last):
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/runner/work/GPT/GPT/hawkins-mobile/build_hawkins.py", line 305, in build_book
     raise RuntimeError(f"missing archive conversations for {key} chapter {ch}: {missing}")
-RuntimeError: missing archive conversations for truth chapter 2: ['6a7028eb-f80c-83ee-ac81-4afa9447ed3c', '6a702b8c-0ad8-83ee-867d-e9bcfae7aa90']
+RuntimeError: missing archive conversations for truth chapter 3: ['6a702be1-1ca8-83ee-b0cd-cdc8580d98f9']
