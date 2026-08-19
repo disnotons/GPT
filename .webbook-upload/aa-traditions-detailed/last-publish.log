@@ -1,15 +1,18 @@
-part-00.b64 versions [('dffbf603', 18000, 0), ('6c3d3e39', 18000, 0)]
-part-01.b64 versions [('d3d38793', 18000, 0), ('464c41bf', 68884, 2), ('f4782266', 18000, 0)]
-part-02.b64 versions [('eef28158', 18000, 0), ('b3917da9', 18000, 0)]
-part-03.b64 versions [('86d54385', 18000, 0), ('a4bb726f', 18000, 0)]
-part-05.b64 versions [('e449ae06', 18000, 0), ('32a9f983', 18000, 0)]
-part-00.b64 versions [('dffbf603', 18000, 0), ('6c3d3e39', 18000, 0)]
-part-01.b64 versions [('d3d38793', 18000, 0), ('464c41bf', 68884, 2), ('f4782266', 18000, 0)]
-part-02.b64 versions [('eef28158', 18000, 0), ('b3917da9', 18000, 0)]
-part-03.b64 versions [('86d54385', 18000, 0), ('a4bb726f', 18000, 0)]
-part-04.b64 versions [('2bfae17d', 18000, 0), ('7f565c87', 18001, 0)]
-part-05.b64 versions [('e449ae06', 18000, 0), ('32a9f983', 18000, 0)]
-part-06.b64 versions [('d64e9b53', 17999, 0), ('35f8af05', 18000, 0)]
-part-07.b64 versions [('78a2c4cd', 18000, 0)]
-part-08.b64 versions [('2c0b79e8', 25683, 0)]
-No stored transfer combination contains the exact current integrated MD.
+Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK
+
+but Gdown can't. Please check connections and permissions.
+unzip:  cannot find or open /tmp/aa-traditions.zip, /tmp/aa-traditions.zip.zip or /tmp/aa-traditions.zip.ZIP.
+sha256sum: '': No such file or directory
+validated source sha256: 
+cp: cannot stat '': No such file or directory
+/home/runner/work/GPT/GPT/.github/scripts/build_aa_traditions_integrated_webbook.py:31: SyntaxWarning: invalid escape sequence '\s'
+  (TARGET/'app.js').write_text('''(()=>{const $=s=>document.querySelector(s),side=$('aside'),toc=$('#toc'),content=$('#content');let items=[],cur=0;const saved=localStorage.getItem('aa-td-theme');if(saved)document.documentElement.dataset.theme=saved;$('#theme').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('aa-td-theme',n)};$('#menu').onclick=()=>side.classList.toggle('open');$('#top').onclick=()=>scrollTo({top:0,behavior:'smooth'});function slug(s,i){return 's-'+i+'-'+s.toLowerCase().replace(/[^0-9a-z가-힣]+/g,'-').replace(/^-|-$/g,'').slice(0,55)}function go(i,push=true){if(i<0||i>=items.length)return;cur=i;items[i].el.scrollIntoView({behavior:'smooth',block:'start'});toc.querySelectorAll('a').forEach((a,j)=>a.classList.toggle('active',j===i));$('#prev').disabled=i===0;$('#next').disabled=i===items.length-1;$('#pos').textContent=`${i+1} / ${items.length}`;if(push)history.replaceState(null,'','#'+items[i].id);side.classList.remove('open')}$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);$('#search').oninput=()=>{const q=$('#search').value.trim().toLowerCase();toc.querySelectorAll('a').forEach(a=>a.hidden=!!q&&!a.textContent.toLowerCase().includes(q))};fetch('./book.md',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(`HTTP ${r.status}`);return r.text()}).then(t=>{content.innerHTML=marked.parse(t);const hs=[...content.querySelectorAll('h2')].filter(h=>/(^|\s)(?:\d{1,2}\.\d+|A\.\d+)(?:\s|$)/.test(h.textContent));items=hs.map((el,i)=>{const id=slug(el.textContent,i);el.id=id;const a=document.createElement('a');a.href='#'+id;a.textContent=el.textContent;a.onclick=e=>{e.preventDefault();go(i)};toc.appendChild(a);return{el,id}});const wanted=decodeURIComponent(location.hash.slice(1)),i=Math.max(0,items.findIndex(x=>x.id===wanted));if(items.length){cur=i;$('#prev').disabled=i===0;$('#next').disabled=i===items.length-1;$('#pos').textContent=`${i+1} / ${items.length}`}}).catch(e=>content.innerHTML=`<h1>웹북을 불러오지 못했습니다</h1><p>${e.message}</p>`);})();''',encoding='utf-8')
+integrated source verification failed
