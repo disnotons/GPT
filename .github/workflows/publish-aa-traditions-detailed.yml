@@ -216,3 +216,5 @@ jobs:
           git add '초기불교/aa/traditions-detailed' '.github/workflows/deploy-pages.yml'
           git commit -m 'Publish AA Twelve Traditions detailed webbook'
           git push origin HEAD:main
+
+# trigger after workflow exists on main
