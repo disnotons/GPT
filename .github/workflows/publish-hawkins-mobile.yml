@@ -1,4 +1,4 @@
-name: Publish Hawkins mobile webbooks
+name: Validate Hawkins mobile webbooks
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  inspect-sample:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,39 +19,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract one target conversation sample from historical full archive
+      - name: Build from historical full archive
         shell: bash
         run: |
           set -euo pipefail
           SOURCE_COMMIT='536a7997ad639ba9e512dd389c64c54afe231f5d'
-          rm -rf /tmp/archive /tmp/source.zip
-          mkdir -p /tmp/archive
-          git show "$SOURCE_COMMIT:GPT_PUBLIC_ARCHIVE_READY.zip" > /tmp/source.zip
-          unzip -t /tmp/source.zip >/dev/null
-          unzip -q /tmp/source.zip -d /tmp/archive
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          target='6a685538-5b18-83e8-ab41-c329b132290f'
-          hits=[]
-          for p in Path('/tmp/archive/publish_site/conversations').glob('*.md'):
-              t=p.read_text(encoding='utf-8',errors='replace')
-              m=re.search(r'(?m)^conversation_id:\s*["\']?(.*?)["\']?\s*$',t[:5000])
-              if m and m.group(1).strip()==target:
-                  hits.append((p,t))
-          if len(hits)!=1:
-              raise SystemExit(f'expected one hit, got {len(hits)}')
-          Path('hawkins-sample-conversation.md').write_text(hits[0][1],encoding='utf-8')
-          print(hits[0][0])
-          PY
+          rm -rf /tmp/hawkins-archive /tmp/hawkins-source.zip /tmp/hawkins-output
+          mkdir -p /tmp/hawkins-archive /tmp/hawkins-output
+          git show "$SOURCE_COMMIT:GPT_PUBLIC_ARCHIVE_READY.zip" > /tmp/hawkins-source.zip
+          unzip -t /tmp/hawkins-source.zip >/dev/null
+          unzip -q /tmp/hawkins-source.zip 'publish_site/conversations/*' -d /tmp/hawkins-archive
+          python hawkins-mobile/build_hawkins.py \
+            --conversations /tmp/hawkins-archive/publish_site/conversations \
+            --manifest hawkins-mobile/source-manifest.json \
+            --reconstructed hawkins-mobile/truth-reconstructed \
+            --output /tmp/hawkins-output
+          cp /tmp/hawkins-output/build-report.json hawkins-mobile/validation-report.json
+          test -f /tmp/hawkins-output/truth-vs-falsehood-mobile/index.md
+          test -f /tmp/hawkins-output/modern-consciousness-map-mobile/index.md
+          if grep -RIl 'docs.google.com' /tmp/hawkins-output; then
+            echo 'Unexpected Google Docs link in generated Hawkins content.'
+            exit 1
+          fi
 
-      - name: Commit sample
+      - name: Commit validation report
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add hawkins-sample-conversation.md
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Extract Hawkins archive sample conversation'
+          git add hawkins-mobile/validation-report.json
+          if git diff --cached --quiet; then
+            echo 'Validation report unchanged.'
+            exit 0
+          fi
+          git commit -m 'Validate Hawkins mobile webbook build'
           git push origin HEAD:main
