@@ -1,6 +1,10 @@
 name: Publish AA Twelve Traditions detailed webbook
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '초기불교/aa/.trigger-detailed-publisher'
   workflow_dispatch:
 
 permissions:
