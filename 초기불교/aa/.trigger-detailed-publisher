@@ -4,3 +4,4 @@ direct-run
 diagnostics
 historical-recovery
 per-part-base64
+exhaustive-history
