@@ -26,8 +26,10 @@ jobs:
           log='.webbook-upload/aa-traditions-detailed/last-publish.log'
           set +e
           {
-            python -m pip install --quiet gdown
-            gdown '1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK' -O /tmp/aa-traditions.zip
+            curl -L --fail --retry 3 --retry-delay 2 \
+              'https://drive.usercontent.google.com/download?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK&export=download&confirm=t' \
+              -o /tmp/aa-traditions.zip
+            file /tmp/aa-traditions.zip
             unzip -t /tmp/aa-traditions.zip >/dev/null
             rm -rf /tmp/aa-traditions-src
             mkdir -p /tmp/aa-traditions-src
