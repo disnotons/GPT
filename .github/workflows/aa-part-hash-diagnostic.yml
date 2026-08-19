@@ -1,0 +1,36 @@
+name: AA transfer part hash diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '초기불교/aa/.trigger-aa-part-hash'
+
+permissions:
+  contents: write
+
+jobs:
+  hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record transfer part hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          out='.webbook-upload/aa-traditions-detailed/part-hashes.log'
+          : > "$out"
+          for f in .webbook-upload/aa-traditions-detailed/part-*.b64; do
+            printf '%s ' "$(basename "$f")" >> "$out"
+            tr -d '\r\n ' < "$f" | sha256sum | awk '{print $1}' >> "$out"
+            printf ' chars=' >> "$out"
+            tr -d '\r\n ' < "$f" | wc -c | tr -d ' ' >> "$out"
+            printf '\n' >> "$out"
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$out"
+          git commit -m 'Record AA transfer part hashes'
+          git push origin HEAD:main
