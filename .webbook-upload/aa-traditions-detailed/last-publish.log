@@ -1,15 +1,16 @@
-Failed to retrieve file url:
-
-	Cannot retrieve the public link of the file. You may need to change
-	the permission to 'Anyone with the link', or have had many accesses.
-	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
-
-You may still be able to access the file from the browser:
-
-	https://drive.google.com/uc?id=1kUnZMmIHhB0F0CfZ-WDnawr5w9jtsTwK
-
-but Gdown can't. Please check connections and permissions.
-unzip:  cannot find or open /tmp/aa-traditions.zip, /tmp/aa-traditions.zip.zip or /tmp/aa-traditions.zip.ZIP.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100  881k    0  881k    0     0  2709k      0 --:--:-- --:--:-- --:--:-- 2709k
+/tmp/aa-traditions.zip: HTML document, ASCII text, with very long lines (65536), with no line terminators
+[/tmp/aa-traditions.zip]
+  End-of-central-directory signature not found.  Either this file is not
+  a zipfile, or it constitutes one disk of a multi-part archive.  In the
+  latter case the central directory and zipfile comment will be found on
+  the last disk(s) of this archive.
+unzip:  cannot find zipfile directory in one of /tmp/aa-traditions.zip or
+        /tmp/aa-traditions.zip.zip, and cannot find /tmp/aa-traditions.zip.ZIP, period.
 sha256sum: '': No such file or directory
 validated source sha256: 
 cp: cannot stat '': No such file or directory
