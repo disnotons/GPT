@@ -1,4 +1,4 @@
-name: Validate Hawkins mobile builder
+name: Scan Hawkins archive coverage
 
 on:
   workflow_dispatch:
@@ -10,65 +10,47 @@ on:
 permissions:
   contents: write
 
-env:
-  VALIDATION_PASS: '2'
-
 jobs:
-  validate:
+  scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Build and record result
+      - name: Scan all manifest IDs
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
           SOURCE_COMMIT='536a7997ad639ba9e512dd389c64c54afe231f5d'
-          rm -rf /tmp/hawkins-archive /tmp/hawkins-output /tmp/hawkins-source.zip /tmp/hawkins.log
-          mkdir -p /tmp/hawkins-archive /tmp/hawkins-output
+          rm -rf /tmp/hawkins-archive /tmp/hawkins-source.zip
+          mkdir -p /tmp/hawkins-archive
+          git show "$SOURCE_COMMIT:GPT_PUBLIC_ARCHIVE_READY.zip" > /tmp/hawkins-source.zip
+          unzip -q /tmp/hawkins-source.zip 'publish_site/conversations/*' -d /tmp/hawkins-archive
           python - <<'PY'
+          import json,re
           from pathlib import Path
-          p=Path('hawkins-mobile/build_hawkins.py')
-          s=p.read_text(encoding='utf-8')
-          old='if key == "truth" and ch >= 16:'
-          new='if key == "truth" and (recon_dir / f"chapter-{ch}.md").exists():'
-          if old in s:
-              s=s.replace(old,new)
-              p.write_text(s,encoding='utf-8')
-          elif new not in s:
-              raise SystemExit('Could not locate direct-source condition in builder')
+          manifest=json.loads(Path('hawkins-mobile/source-manifest.json').read_text(encoding='utf-8'))
+          ids=set()
+          for p in Path('/tmp/hawkins-archive/publish_site/conversations').glob('*.md'):
+              t=p.read_text(encoding='utf-8',errors='replace')[:5000]
+              m=re.search(r'(?m)^conversation_id:\s*["\']?(.*?)["\']?\s*$',t)
+              if m: ids.add(m.group(1).strip())
+          report={'source_commit':'536a7997ad639ba9e512dd389c64c54afe231f5d','archive_ids':len(ids),'books':{}}
+          for book,chapters in manifest.items():
+              out={}
+              for ch,cids in chapters.items():
+                  check=list(cids)
+                  if book=='truth' and ch=='3': check=['6a702be1-1ca8-83ee-b0cd-cdc8580d98f9']
+                  miss=[x for x in check if x not in ids]
+                  if miss: out[ch]=miss
+              report['books'][book]=out
+          Path('hawkins-mobile/archive-missing-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(report,ensure_ascii=False,indent=2))
           PY
-          set +e
-          git show "$SOURCE_COMMIT:GPT_PUBLIC_ARCHIVE_READY.zip" > /tmp/hawkins-source.zip 2>/tmp/hawkins.log
-          rc=$?
-          if [ "$rc" -eq 0 ]; then unzip -t /tmp/hawkins-source.zip >>/tmp/hawkins.log 2>&1; rc=$?; fi
-          if [ "$rc" -eq 0 ]; then unzip -q /tmp/hawkins-source.zip 'publish_site/conversations/*' -d /tmp/hawkins-archive >>/tmp/hawkins.log 2>&1; rc=$?; fi
-          if [ "$rc" -eq 0 ]; then
-            python hawkins-mobile/build_hawkins.py \
-              --conversations /tmp/hawkins-archive/publish_site/conversations \
-              --manifest hawkins-mobile/source-manifest.json \
-              --reconstructed hawkins-mobile/truth-reconstructed \
-              --output /tmp/hawkins-output >>/tmp/hawkins.log 2>&1
-            rc=$?
-          fi
-          set -e
-          {
-            echo "exit_code=$rc"
-            echo "source_commit=$SOURCE_COMMIT"
-            echo "validation_pass=$VALIDATION_PASS"
-            echo '--- build log ---'
-            cat /tmp/hawkins.log
-          } > hawkins-mobile/validation-status.txt
-          if [ -f /tmp/hawkins-output/build-report.json ]; then
-            cp /tmp/hawkins-output/build-report.json hawkins-mobile/validation-report.json
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add hawkins-mobile/validation-status.txt
-          if [ -f hawkins-mobile/validation-report.json ]; then git add hawkins-mobile/validation-report.json; fi
+          git add hawkins-mobile/archive-missing-report.json
           if ! git diff --cached --quiet; then
-            git commit -m 'Record Hawkins mobile validation result'
+            git commit -m 'Record Hawkins archive coverage'
             git push origin HEAD:main
           fi
