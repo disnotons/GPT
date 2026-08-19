@@ -1,5 +1,6 @@
 exit_code=1
 source_commit=536a7997ad639ba9e512dd389c64c54afe231f5d
+validation_pass=2
 --- build log ---
 Archive:  /tmp/hawkins-source.zip
     testing: publish_site/            OK
@@ -1405,4 +1406,4 @@ Traceback (most recent call last):
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/runner/work/GPT/GPT/hawkins-mobile/build_hawkins.py", line 305, in build_book
     raise RuntimeError(f"missing archive conversations for {key} chapter {ch}: {missing}")
-RuntimeError: missing archive conversations for truth chapter 3: ['6a702be1-1ca8-83ee-b0cd-cdc8580d98f9']
+RuntimeError: missing archive conversations for truth chapter 4: ['6a702e2e-79dc-83e8-aae0-0f268ea3b636']
