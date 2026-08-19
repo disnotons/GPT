@@ -83,3 +83,5 @@ jobs:
           git rm '.github/workflows/publish-mechthild-once.yml'
           git commit -m 'Publish Mechthild webbook content'
           git push origin HEAD:main
+
+# publication trigger 2026-08-19
