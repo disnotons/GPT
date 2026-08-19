@@ -1,1 +1,53 @@
-{"title":"초기경전 쉬운 해설","collections":[{"slug":"samjuk-agama","title":"잡아함경 완전읽기","subtitle":"Saṃyukta Āgama · T99","status":"진행 중","detail":"제1경~제50경 공개","href":"./samjuk-agama/"},{"slug":"madhyama-agama","title":"중아함경","subtitle":"Madhyama Āgama","status":"프레임 준비","detail":"해설 업로드 대기","href":"./madhyama-agama/"},{"slug":"dirgha-agama","title":"장아함경","subtitle":"Dīrgha Āgama","status":"프레임 준비","detail":"해설 업로드 대기","href":"./dirgha-agama/"},{"slug":"ekottarika-agama","title":"증일아함경","subtitle":"Ekottarika Āgama","status":"프레임 준비","detail":"해설 업로드 대기","href":"./ekottarika-agama/"},{"slug":"alternate-samyukta-agama","title":"별역잡아함경","subtitle":"Alternative Saṃyukta Āgama","status":"프레임 준비","detail":"해설 업로드 대기","href":"./alternate-samyukta-agama/"},{"slug":"other-agamas","title":"기타 아함·평행전승","subtitle":"Āgama parallels & fragments","status":"프레임 준비","detail":"기타 전승·평행경 수용 공간","href":"./other-agamas/"}]}
+{
+  "title": "초기경전 쉬운 해설",
+  "collections": [
+    {
+      "slug": "samjuk-agama",
+      "title": "잡아함경 완전읽기",
+      "subtitle": "Saṃyukta Āgama · T99",
+      "status": "진행 중",
+      "detail": "제1경~제50경 공개",
+      "href": "./samjuk-agama/"
+    },
+    {
+      "slug": "madhyama-agama",
+      "title": "중아함경",
+      "subtitle": "Madhyama Āgama",
+      "status": "프레임 준비",
+      "detail": "해설 업로드 대기",
+      "href": "./madhyama-agama/"
+    },
+    {
+      "slug": "dirgha-agama",
+      "title": "장아함경",
+      "subtitle": "Dīrgha Āgama",
+      "status": "프레임 준비",
+      "detail": "해설 업로드 대기",
+      "href": "./dirgha-agama/"
+    },
+    {
+      "slug": "ekottarika-agama",
+      "title": "증일아함경",
+      "subtitle": "Ekottarika Āgama",
+      "status": "프레임 준비",
+      "detail": "해설 업로드 대기",
+      "href": "./ekottarika-agama/"
+    },
+    {
+      "slug": "alternate-samyukta-agama",
+      "title": "별역잡아함경",
+      "subtitle": "Alternative Saṃyukta Āgama",
+      "status": "프레임 준비",
+      "detail": "해설 업로드 대기",
+      "href": "./alternate-samyukta-agama/"
+    },
+    {
+      "slug": "other-agamas",
+      "title": "기타 아함·평행전승",
+      "subtitle": "Āgama parallels & fragments",
+      "status": "프레임 준비",
+      "detail": "기타 전승·평행경 수용 공간",
+      "href": "./other-agamas/"
+    }
+  ]
+}
