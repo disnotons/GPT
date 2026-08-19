@@ -12,19 +12,6 @@ OUT=Path('/tmp/aa-integrated.md')
 def sh(*args:str)->bytes:
     return subprocess.check_output(args,stderr=subprocess.DEVNULL)
 
-def versions(name:str):
-    path=f'{STAGE.as_posix()}/{name}'
-    commits=sh('git','log','--all','--format=%H','--',path).decode().splitlines()
-    out=[]; seen=set()
-    for c in commits:
-        try: txt=sh('git','show',f'{c}:{path}').decode('ascii')
-        except Exception: continue
-        txt=''.join(txt.split()); h=hashlib.sha256(txt.encode()).hexdigest()
-        if h not in seen:
-            seen.add(h); out.append((c,txt))
-    print(name,'versions',[(c[:8],len(t),t.count('=')) for c,t in out])
-    return out
-
 def find_integrated(raw:bytes,label:str)->bool:
     if not raw.startswith(b'BZh'): return False
     try: tarbytes=bz2.decompress(raw)
@@ -45,8 +32,44 @@ def find_integrated(raw:bytes,label:str)->bool:
             return True
     return False
 
+def try_stream(paths:list[Path],label:str)->bool:
+    if not all(p.is_file() for p in paths):
+        return False
+    txt=''.join(''.join(p.read_text(encoding='ascii').split()) for p in paths)
+    if len(txt)%4 or '=' in txt[:-4]:
+        return False
+    try: raw=base64.b64decode(txt,validate=True)
+    except Exception: return False
+    return find_integrated(raw,label)
+
+# The exact integrated source was re-uploaded in ten slices after the older
+# historical recovery logic was written. Prefer those validated current slices.
+# Parts 00-03 and 05 were already correct; corrected/current slices are 04, 06-09.
+for p05 in ('part-05.b64','part-05-new.b64'):
+    exact_paths=[
+        STAGE/'part-00.b64', STAGE/'part-01.b64', STAGE/'part-02.b64', STAGE/'part-03.b64',
+        STAGE/'current-part-04.b64', STAGE/p05,
+        STAGE/'current-part-06.b64', STAGE/'current-part-07.b64',
+        STAGE/'current-part-08.b64', STAGE/'current-part-09.b64',
+    ]
+    if try_stream(exact_paths,'current exact slices with '+p05):
+        raise SystemExit(0)
+
+def versions(name:str):
+    path=f'{STAGE.as_posix()}/{name}'
+    commits=sh('git','log','--all','--format=%H','--',path).decode().splitlines()
+    out=[]; seen=set()
+    for c in commits:
+        try: txt=sh('git','show',f'{c}:{path}').decode('ascii')
+        except Exception: continue
+        txt=''.join(txt.split()); h=hashlib.sha256(txt.encode()).hexdigest()
+        if h not in seen:
+            seen.add(h); out.append((c,txt))
+    print(name,'versions',[(c[:8],len(t),t.count('=')) for c,t in out])
+    return out
+
 allv=[versions(n) for n in NAMES]
-# Try every historical version combination as slices of one Base64 stream.
+# Fallback: try every historical version combination as slices of one Base64 stream.
 for combo in product(*allv):
     txt=''.join(x[1] for x in combo)
     if len(txt)%4 or '=' in txt[:-4]: continue
@@ -67,4 +90,4 @@ if all(valid):
         raw=b''.join(x[2] for x in combo)
         if find_integrated(raw,'perpart '+','.join(x[0][:8] for x in combo)):
             raise SystemExit(0)
-raise SystemExit('No historical transfer combination contains the exact current integrated MD.')
+raise SystemExit('No stored transfer combination contains the exact current integrated MD.')
