@@ -1,0 +1,1 @@
+AA Twelve Traditions detailed webbook source transfer. Final publication is validated by SHA-256 before Pages staging.
