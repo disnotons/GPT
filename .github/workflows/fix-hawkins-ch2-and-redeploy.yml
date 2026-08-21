@@ -1,4 +1,4 @@
-name: Fix Hawkins chapter 2 and redeploy Pages
+name: Fix Hawkins chapters 2-3 and redeploy Pages
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Use reconstructed Truth chapter 2
+      - name: Use reconstructed Truth chapters 2 and 3
         id: patch
         shell: bash
         run: |
@@ -28,16 +28,16 @@ jobs:
           from pathlib import Path
           p = Path('hawkins-mobile/build_hawkins.py')
           s = p.read_text(encoding='utf-8')
-          old = 'if key == "truth" and ch >= 16:'
-          new = 'if key == "truth" and (ch == 2 or ch >= 16):'
+          old = 'if key == "truth" and (ch == 2 or ch >= 16):'
+          new = 'if key == "truth" and (ch in (2, 3) or ch >= 16):'
           count = s.count(old)
           if count == 1:
               p.write_text(s.replace(old, new, 1), encoding='utf-8')
-              print('patched build_hawkins.py')
+              print('patched build_hawkins.py for truth chapters 2 and 3')
           elif new in s:
               print('patch already present')
           else:
-              raise RuntimeError(f'expected exactly one Hawkins condition, found {count}')
+              raise RuntimeError(f'expected Hawkins condition not found; old count={count}')
           PY
 
       - name: Commit Hawkins fix
@@ -51,7 +51,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'Hawkins patch already committed.'
           else
-            git commit -m 'Use reconstructed Hawkins truth chapter 2'
+            git commit -m 'Use reconstructed Hawkins truth chapters 2 and 3'
             git pull --rebase origin main
             git push origin main
           fi
@@ -75,14 +75,14 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git pull --rebase origin main || true
           mkdir -p .deployment
-          cat > .deployment/hawkins-ch2-fix-status.txt <<EOF
-          Hawkins chapter 2 fallback fix
+          cat > .deployment/hawkins-ch23-fix-status.txt <<EOF
+          Hawkins chapters 2-3 reconstruction fallback fix
           Run ID: $GITHUB_RUN_ID
           Source commit: $GITHUB_SHA
           Patch outcome: ${{ steps.patch.outcome }}
           Commit outcome: ${{ steps.commit_fix.outcome }}
           Dispatch outcome: ${{ steps.dispatch.outcome }}
           EOF
-          git add .deployment/hawkins-ch2-fix-status.txt
-          git diff --cached --quiet || git commit -m 'Record Hawkins chapter 2 fix result [skip ci]'
+          git add .deployment/hawkins-ch23-fix-status.txt
+          git diff --cached --quiet || git commit -m 'Record Hawkins chapters 2-3 fix result [skip ci]'
           git push origin main
