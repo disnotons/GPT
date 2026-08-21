@@ -20,12 +20,14 @@ jobs:
           fetch-depth: 0
 
       - name: Repair legacy ZIP filename encoding
+        id: repair
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
+          from zipfile import ZipFile, ZipInfo
           import os
 
           src = Path('GPT_PUBLIC_ARCHIVE_READY.zip')
@@ -38,10 +40,9 @@ jobs:
               if info.flag_bits & 0x800:
                   return name
               try:
-                  candidate = name.encode('cp437').decode('utf-8')
+                  return name.encode('cp437').decode('utf-8')
               except (UnicodeEncodeError, UnicodeDecodeError):
                   return name
-              return candidate
 
           with ZipFile(src, 'r') as zin, ZipFile(tmp, 'w') as zout:
               zout.comment = zin.comment
@@ -51,7 +52,6 @@ jobs:
                   if name != old.filename:
                       repaired += 1
 
-                  # Refuse unsafe archive paths.
                   parts = Path(name).parts
                   if name.startswith('/') or '..' in parts:
                       raise RuntimeError(f'unsafe archive path: {name!r}')
@@ -69,8 +69,7 @@ jobs:
                   new.create_version = old.create_version
                   new.extract_version = old.extract_version
                   new.volume = old.volume
-                  data = zin.read(old)
-                  zout.writestr(new, data)
+                  zout.writestr(new, zin.read(old))
 
           print(f'archive entries: {total}')
           print(f'repaired filenames: {repaired}')
@@ -80,7 +79,6 @@ jobs:
           else:
               os.replace(tmp, src)
 
-          # Verify Python can now see intended UTF-8 names and every component fits Linux limits.
           with ZipFile(src, 'r') as z:
               bad=[]
               for i in z.infolist():
@@ -93,6 +91,9 @@ jobs:
           PY
 
       - name: Commit repaired archive
+        id: commit_archive
+        if: ${{ steps.repair.outcome == 'success' }}
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -108,6 +109,9 @@ jobs:
           fi
 
       - name: Dispatch Pages deployment
+        id: dispatch
+        if: ${{ steps.repair.outcome == 'success' && steps.commit_archive.outcome == 'success' }}
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -115,3 +119,24 @@ jobs:
           set -euo pipefail
           gh workflow run deploy-pages.yml --ref main
           echo 'Pages deployment dispatched.'
+
+      - name: Record archive repair workflow result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main || true
+          mkdir -p .deployment
+          cat > .deployment/archive-repair-status.txt <<EOF
+          Archive repair workflow result
+          Run ID: $GITHUB_RUN_ID
+          Source commit: $GITHUB_SHA
+          Repair outcome: ${{ steps.repair.outcome }}
+          Archive commit outcome: ${{ steps.commit_archive.outcome }}
+          Dispatch outcome: ${{ steps.dispatch.outcome }}
+          EOF
+          git add .deployment/archive-repair-status.txt
+          git diff --cached --quiet || git commit -m 'Record archive repair workflow result [skip ci]'
+          git push origin main
