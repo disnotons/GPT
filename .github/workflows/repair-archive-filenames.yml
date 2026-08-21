@@ -1,0 +1,117 @@
+name: Repair archive filenames and redeploy Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-archive-filenames.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Repair legacy ZIP filename encoding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
+          import os
+
+          src = Path('GPT_PUBLIC_ARCHIVE_READY.zip')
+          tmp = Path('GPT_PUBLIC_ARCHIVE_READY.repaired.zip')
+          repaired = 0
+          total = 0
+
+          def fixed_name(info):
+              name = info.filename
+              if info.flag_bits & 0x800:
+                  return name
+              try:
+                  candidate = name.encode('cp437').decode('utf-8')
+              except (UnicodeEncodeError, UnicodeDecodeError):
+                  return name
+              return candidate
+
+          with ZipFile(src, 'r') as zin, ZipFile(tmp, 'w') as zout:
+              zout.comment = zin.comment
+              for old in zin.infolist():
+                  total += 1
+                  name = fixed_name(old)
+                  if name != old.filename:
+                      repaired += 1
+
+                  # Refuse unsafe archive paths.
+                  parts = Path(name).parts
+                  if name.startswith('/') or '..' in parts:
+                      raise RuntimeError(f'unsafe archive path: {name!r}')
+                  for part in parts:
+                      if len(part.encode('utf-8')) > 255:
+                          raise RuntimeError(f'filename component still too long after repair: {part!r}')
+
+                  new = ZipInfo(filename=name, date_time=old.date_time)
+                  new.compress_type = old.compress_type
+                  new.comment = old.comment
+                  new.extra = old.extra
+                  new.internal_attr = old.internal_attr
+                  new.external_attr = old.external_attr
+                  new.create_system = old.create_system
+                  new.create_version = old.create_version
+                  new.extract_version = old.extract_version
+                  new.volume = old.volume
+                  data = zin.read(old)
+                  zout.writestr(new, data)
+
+          print(f'archive entries: {total}')
+          print(f'repaired filenames: {repaired}')
+          if repaired == 0:
+              tmp.unlink()
+              print('archive already uses valid filename encoding')
+          else:
+              os.replace(tmp, src)
+
+          # Verify Python can now see intended UTF-8 names and every component fits Linux limits.
+          with ZipFile(src, 'r') as z:
+              bad=[]
+              for i in z.infolist():
+                  for p in Path(i.filename).parts:
+                      if len(p.encode('utf-8')) > 255:
+                          bad.append(i.filename)
+              if bad:
+                  raise RuntimeError(f'{len(bad)} overlong paths remain')
+              assert 'publish_site/index.md' in z.namelist()
+          PY
+
+      - name: Commit repaired archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add GPT_PUBLIC_ARCHIVE_READY.zip
+          if git diff --cached --quiet; then
+            echo 'No archive change required.'
+          else
+            git commit -m 'Repair archive UTF-8 filenames for Pages deployment'
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+      - name: Dispatch Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run deploy-pages.yml --ref main
+          echo 'Pages deployment dispatched.'
