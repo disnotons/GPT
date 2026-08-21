@@ -10,6 +10,28 @@ permissions:
   contents: write
 
 jobs:
+  record-deploy-failure:
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record failed Pages deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .deployment
+          cat > .deployment/samjuk-status.txt <<EOF
+          Samyukta Agama Pages deployment failed
+          Conclusion: ${{ github.event.workflow_run.conclusion }}
+          Source commit: ${{ github.event.workflow_run.head_sha }}
+          Run ID: ${{ github.event.workflow_run.id }}
+          EOF
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .deployment/samjuk-status.txt
+          git diff --cached --quiet || git commit -m 'Record Samyukta Agama Pages deployment failure [skip ci]'
+          git push
+
   verify:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
@@ -24,7 +46,7 @@ jobs:
           ok=''
           for n in $(seq 1 60); do
             health="$(curl -fsSL --max-time 15 "$base/health.txt" || true)"
-            if [ "$health" = 'samjuk-route-ok-v10' ]; then
+            if [ "$health" = 'samjuk-route-ok-v10b' ]; then
               curl -fsSL --max-time 15 "$base/index.html" | grep -q '제1~10권'
               curl -fsSL --max-time 15 "$base/volumes.js" | grep -Fq '[10,256,272,17,"published"'
               curl -fsSL --max-time 15 "$base/reader.js" | grep -Fq "10:['10.seg1.mdpart','10.seg2.mdpart','10.seg3.mdpart']"
@@ -41,6 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .deployment
+          rm -f .deployment/samjuk-status.txt
           sha='${{ github.event.workflow_run.head_sha }}'
           if [ -z "$sha" ]; then sha="$GITHUB_SHA"; fi
           cat > .deployment/samjuk-live.txt <<EOF
@@ -51,7 +74,7 @@ jobs:
           Source commit: $sha
           EOF
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .deployment/samjuk-live.txt
+          git config user.email '41898282+disnotons@users.noreply.github.com'
+          git add -A .deployment
           git diff --cached --quiet || git commit -m 'Record Samyukta Agama Pages verification [skip ci]'
           git push
