@@ -1,0 +1,35 @@
+name: Report Pages workflow runs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/report-pages-runs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record recent Pages workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .deployment
+          gh run list --workflow deploy-pages.yml --limit 10 --json databaseId,status,conclusion,headSha,event,createdAt,updatedAt,url > .deployment/pages-runs.json
+          cat .deployment/pages-runs.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main || true
+          git add .deployment/pages-runs.json
+          git diff --cached --quiet || git commit -m 'Record Pages workflow runs [skip ci]'
+          git push origin main
