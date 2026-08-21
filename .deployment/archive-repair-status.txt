@@ -1,6 +1,6 @@
 Archive repair workflow result
-Run ID: 32441633034
-Source commit: 958a6413896584a752da8a3ef91920cebb3066ef
-Repair outcome: failure
-Archive commit outcome: skipped
-Dispatch outcome: skipped
+Run ID: 32441709664
+Source commit: 733878d38aa653542b11866906c7b6c1085e01b6
+Repair outcome: success
+Archive commit outcome: success
+Dispatch outcome: success
