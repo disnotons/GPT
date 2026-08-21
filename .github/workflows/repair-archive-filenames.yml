@@ -37,12 +37,14 @@ jobs:
 
           def fixed_name(info):
               name = info.filename
-              if info.flag_bits & 0x800:
-                  return name
+              # Some legacy entries contain UTF-8 bytes decoded as CP437-like
+              # mojibake even though the ZIP UTF-8 flag is already set.
+              # Try the reversible CP437 -> UTF-8 repair on every name.
               try:
-                  return name.encode('cp437').decode('utf-8')
+                  candidate = name.encode('cp437').decode('utf-8')
               except (UnicodeEncodeError, UnicodeDecodeError):
                   return name
+              return candidate
 
           with ZipFile(src, 'r') as zin, ZipFile(tmp, 'w') as zout:
               zout.comment = zin.comment
