@@ -34,4 +34,4 @@ jobs:
           git diff --cached --quiet || git commit -m 'Record Pages workflow runs [skip ci]'
           git push origin main
 
-# refreshed after Hawkins chapter 2 fallback fix
+# refreshed after Hawkins chapters 2-3 reconstruction fix
