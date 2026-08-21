@@ -1,0 +1,57 @@
+name: Verify Samyukta Agama webbook live
+
+on:
+  workflow_run:
+    workflows: ["Deploy Archive and Reading Sites to Pages"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify published Samyukta Agama route
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://disnotons.github.io/GPT/early-buddhism/early-texts/samjuk-agama'
+          ok=''
+          for n in $(seq 1 60); do
+            health="$(curl -fsSL --max-time 15 "$base/health.txt" || true)"
+            if [ "$health" = 'samjuk-route-ok-v10' ]; then
+              curl -fsSL --max-time 15 "$base/index.html" | grep -q '제1~10권'
+              curl -fsSL --max-time 15 "$base/volumes.js" | grep -Fq '[10,256,272,17,"published"'
+              curl -fsSL --max-time 15 "$base/reader.js" | grep -Fq "10:['10.seg1.mdpart','10.seg2.mdpart','10.seg3.mdpart']"
+              curl -fsSL --max-time 15 "$base/volumes/10.seg3.mdpart" | grep -q '제11권'
+              ok='yes'
+              break
+            fi
+            sleep 5
+          done
+          test "$ok" = 'yes'
+
+      - name: Record verified deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .deployment
+          sha='${{ github.event.workflow_run.head_sha }}'
+          if [ -z "$sha" ]; then sha="$GITHUB_SHA"; fi
+          cat > .deployment/samjuk-live.txt <<EOF
+          Samyukta Agama webbook verified live
+          URL: https://disnotons.github.io/GPT/early-buddhism/early-texts/samjuk-agama/
+          Reader10: https://disnotons.github.io/GPT/early-buddhism/early-texts/samjuk-agama/reader.html?vol=10
+          Published: volumes 1-10, sutras 1-272
+          Source commit: $sha
+          EOF
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .deployment/samjuk-live.txt
+          git diff --cached --quiet || git commit -m 'Record Samyukta Agama Pages verification [skip ci]'
+          git push
