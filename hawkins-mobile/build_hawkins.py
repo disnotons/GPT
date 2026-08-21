@@ -288,7 +288,7 @@ def build_book(
 
     for ch, title in info["titles"].items():
         blocks: list[str] = []
-        if key == "truth" and (ch == 2 or ch >= 16):
+        if key == "truth" and (ch in (2, 3) or ch >= 16):
             source = recon_dir / f"chapter-{ch}.md"
             if not source.exists():
                 raise RuntimeError(f"missing reconstructed chapter: {source}")
