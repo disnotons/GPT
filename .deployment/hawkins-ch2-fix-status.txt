@@ -1,0 +1,6 @@
+Hawkins chapter 2 fallback fix
+Run ID: 32442188322
+Source commit: 8bfe99313cac10e6236b3994451e169684726477
+Patch outcome: success
+Commit outcome: success
+Dispatch outcome: success
