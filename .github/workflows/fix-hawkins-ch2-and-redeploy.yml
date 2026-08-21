@@ -1,0 +1,88 @@
+name: Fix Hawkins chapter 2 and redeploy Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-hawkins-ch2-and-redeploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use reconstructed Truth chapter 2
+        id: patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('hawkins-mobile/build_hawkins.py')
+          s = p.read_text(encoding='utf-8')
+          old = 'if key == "truth" and ch >= 16:'
+          new = 'if key == "truth" and (ch == 2 or ch >= 16):'
+          count = s.count(old)
+          if count == 1:
+              p.write_text(s.replace(old, new, 1), encoding='utf-8')
+              print('patched build_hawkins.py')
+          elif new in s:
+              print('patch already present')
+          else:
+              raise RuntimeError(f'expected exactly one Hawkins condition, found {count}')
+          PY
+
+      - name: Commit Hawkins fix
+        id: commit_fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add hawkins-mobile/build_hawkins.py
+          if git diff --cached --quiet; then
+            echo 'Hawkins patch already committed.'
+          else
+            git commit -m 'Use reconstructed Hawkins truth chapter 2'
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+      - name: Dispatch Pages deployment
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run deploy-pages.yml --ref main
+          echo 'Pages deployment dispatched.'
+
+      - name: Record fix result
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main || true
+          mkdir -p .deployment
+          cat > .deployment/hawkins-ch2-fix-status.txt <<EOF
+          Hawkins chapter 2 fallback fix
+          Run ID: $GITHUB_RUN_ID
+          Source commit: $GITHUB_SHA
+          Patch outcome: ${{ steps.patch.outcome }}
+          Commit outcome: ${{ steps.commit_fix.outcome }}
+          Dispatch outcome: ${{ steps.dispatch.outcome }}
+          EOF
+          git add .deployment/hawkins-ch2-fix-status.txt
+          git diff --cached --quiet || git commit -m 'Record Hawkins chapter 2 fix result [skip ci]'
+          git push origin main
